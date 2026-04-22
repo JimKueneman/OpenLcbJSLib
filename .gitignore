@@ -1,0 +1,33 @@
+# Node / npm
+node_modules/
+package-lock.json.bak
+npm-debug.log*
+.npm/
+*.log
+
+# Build output
+# The readable bundle is committed so cloners get a ready-to-use file.
+# Minified and sourcemap variants are developer-local only — regenerate with
+# `npm run build:minify` / `npm run build:debug`.
+examples/*/openlcb.bundle.min.js
+examples/*/openlcb.bundle.min.js.map
+examples/*/openlcb.bundle.js.map
+dist/openlcb.bundle.min.js
+dist/openlcb.bundle.min.js.map
+dist/openlcb.bundle.js.map
+
+# Local tool state
+.claude/
+.openlcb-cfg/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS noise
+**/.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
