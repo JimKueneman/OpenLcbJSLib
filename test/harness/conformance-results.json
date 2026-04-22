@@ -1,0 +1,1710 @@
+{
+  "meta": {
+    "startedAt": "2026-04-22T16:25:39.552Z",
+    "durationMs": 1724338,
+    "port": 12021,
+    "nodeId": "05.01.01.01.07.07",
+    "perCheckTimeoutS": 60
+  },
+  "modes": [
+    "basic",
+    "train",
+    "broadcast-time-producer",
+    "broadcast-time-consumer",
+    "detector"
+  ],
+  "results": {
+    "basic": {
+      "check_fr10_init.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 613
+      },
+      "check_fr20_ame.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 664
+      },
+      "check_fr30_collide.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2213
+      },
+      "check_fr40_highbit.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 366
+      },
+      "check_fr50_capacity.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1088
+      },
+      "check_fr60_standard.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 25560
+      },
+      "check_me10_init.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 879
+      },
+      "check_me20_verify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2139
+      },
+      "check_me30_pip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1365
+      },
+      "check_me40_oir.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2180
+      },
+      "check_me50_dup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 561
+      },
+      "check_me60_pip_simple.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1066
+      },
+      "check_sn10_snip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1634
+      },
+      "check_ev10_ida.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1617
+      },
+      "check_ev20_idg.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2429
+      },
+      "check_ev30_ip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1619
+      },
+      "check_ev40_ic.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1626
+      },
+      "check_ev50_ini.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2446
+      },
+      "check_ev60_ewp.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30616
+      },
+      "check_ev70_lrn.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30634
+      },
+      "check_da30_dr.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 830
+      },
+      "check_da40_unknown_protocol.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31723
+      },
+      "check_mc10_co.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 821
+      },
+      "check_mc20_ckasi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 810
+      },
+      "check_mc30_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1637
+      },
+      "check_mc40_lock.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 931
+      },
+      "check_mc50_restart.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1230
+      },
+      "check_mc60_out_of_range.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32473
+      },
+      "check_mc70_write_under_mask.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 824
+      },
+      "check_mc80_write.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 809
+      },
+      "check_cd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1128
+      },
+      "check_cd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2832
+      },
+      "check_cd30_acdi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 957
+      },
+      "check_cd40_acdi_writeback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 815
+      },
+      "check_st10_initiate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32198
+      },
+      "check_st20_reject_unsupported.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 828
+      },
+      "check_st30_buffer_negotiation.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1683
+      },
+      "check_st35_min_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1117
+      },
+      "check_st37_max_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1122
+      },
+      "check_st40_unknown_content_uid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1110
+      },
+      "check_st50_initiate_reply_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1123
+      },
+      "check_st60_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1121
+      },
+      "check_st65_data_proceed_flow.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1120
+      },
+      "check_st70_complete.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2133
+      },
+      "check_st80_terminate_error.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4959
+      },
+      "check_st85_stability.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32000
+      },
+      "check_st90_oir_fallback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1131
+      },
+      "check_st100_concurrent_same_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1461
+      },
+      "check_st110_concurrent_multi_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2417
+      },
+      "check_st120_sustained_transfer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1844
+      },
+      "check_st130_min_chunk_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1137
+      },
+      "check_st140_concurrent_sustained.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2113
+      },
+      "check_st150_asymmetric_buffers.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1445
+      },
+      "check_st155_negotiation_enforcement.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1128
+      },
+      "check_st170_zero_payload_flush.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1137
+      },
+      "check_st180_interleaved_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1454
+      },
+      "check_st190_suggested_did.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1674
+      },
+      "check_st200_complete_with_byte_count.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4247
+      },
+      "check_st210_reject_then_retry.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2296
+      }
+    },
+    "train": {
+      "check_fr10_init.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 617
+      },
+      "check_fr20_ame.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 673
+      },
+      "check_fr30_collide.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2219
+      },
+      "check_fr40_highbit.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 375
+      },
+      "check_fr50_capacity.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1101
+      },
+      "check_fr60_standard.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 25378
+      },
+      "check_me10_init.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 805
+      },
+      "check_me20_verify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2137
+      },
+      "check_me30_pip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1369
+      },
+      "check_me40_oir.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2164
+      },
+      "check_me50_dup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 560
+      },
+      "check_me60_pip_simple.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1075
+      },
+      "check_sn10_snip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1619
+      },
+      "check_ev10_ida.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1627
+      },
+      "check_ev20_idg.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2417
+      },
+      "check_ev30_ip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1612
+      },
+      "check_ev40_ic.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1643
+      },
+      "check_ev50_ini.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2476
+      },
+      "check_ev60_ewp.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30603
+      },
+      "check_ev70_lrn.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30630
+      },
+      "check_da30_dr.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 833
+      },
+      "check_da40_unknown_protocol.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31699
+      },
+      "check_mc10_co.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 829
+      },
+      "check_mc20_ckasi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 839
+      },
+      "check_mc30_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1631
+      },
+      "check_mc40_lock.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 858
+      },
+      "check_mc50_restart.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1048
+      },
+      "check_mc60_out_of_range.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32514
+      },
+      "check_mc70_write_under_mask.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 818
+      },
+      "check_mc80_write.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 803
+      },
+      "check_cd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1001
+      },
+      "check_cd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2781
+      },
+      "check_cd30_acdi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 964
+      },
+      "check_cd40_acdi_writeback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 813
+      },
+      "check_st10_initiate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32205
+      },
+      "check_st20_reject_unsupported.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 819
+      },
+      "check_st30_buffer_negotiation.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1693
+      },
+      "check_st35_min_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1127
+      },
+      "check_st37_max_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1112
+      },
+      "check_st40_unknown_content_uid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1112
+      },
+      "check_st50_initiate_reply_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1112
+      },
+      "check_st60_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1116
+      },
+      "check_st65_data_proceed_flow.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1138
+      },
+      "check_st70_complete.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2127
+      },
+      "check_st80_terminate_error.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4961
+      },
+      "check_st85_stability.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31993
+      },
+      "check_st90_oir_fallback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1109
+      },
+      "check_st100_concurrent_same_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1452
+      },
+      "check_st110_concurrent_multi_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2400
+      },
+      "check_st120_sustained_transfer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1829
+      },
+      "check_st130_min_chunk_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1126
+      },
+      "check_st140_concurrent_sustained.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2122
+      },
+      "check_st150_asymmetric_buffers.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1458
+      },
+      "check_st155_negotiation_enforcement.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1130
+      },
+      "check_st170_zero_payload_flush.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1128
+      },
+      "check_st180_interleaved_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1429
+      },
+      "check_st190_suggested_did.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1682
+      },
+      "check_st200_complete_with_byte_count.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4213
+      },
+      "check_st210_reject_then_retry.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2295
+      },
+      "check_tr010_events.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1865
+      },
+      "check_tr020_speed.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 830
+      },
+      "check_tr030_func.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 815
+      },
+      "check_tr040_estop.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_tr050_gestop.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 820
+      },
+      "check_tr060_geoff.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_tr070_memspaces.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 810
+      },
+      "check_tr080_listener.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 869
+      },
+      "check_tr090_controller.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1087
+      },
+      "check_tr100_reserve.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1083
+      },
+      "check_tr110_heartbeat.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 22411
+      },
+      "check_ts10_create.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1811
+      },
+      "check_ts20_partial.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1320
+      },
+      "check_ts30_reserved2.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2064
+      },
+      "check_ts40_reserved4.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4574
+      },
+      "check_fd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 996
+      },
+      "check_fd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 3073
+      },
+      "check_fd30_readonly.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 806
+      }
+    },
+    "broadcast-time-producer": {
+      "check_fr10_init.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 1356
+      },
+      "check_fr20_ame.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 674
+      },
+      "check_fr30_collide.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2993
+      },
+      "check_fr40_highbit.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 361
+      },
+      "check_fr50_capacity.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1092
+      },
+      "check_fr60_standard.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 25506
+      },
+      "check_me10_init.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_me20_verify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2132
+      },
+      "check_me30_pip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1361
+      },
+      "check_me40_oir.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2175
+      },
+      "check_me50_dup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 552
+      },
+      "check_me60_pip_simple.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1063
+      },
+      "check_sn10_snip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1623
+      },
+      "check_ev10_ida.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1612
+      },
+      "check_ev20_idg.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2436
+      },
+      "check_ev30_ip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1619
+      },
+      "check_ev40_ic.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1614
+      },
+      "check_ev50_ini.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 3138
+      },
+      "check_ev60_ewp.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30613
+      },
+      "check_ev70_lrn.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30640
+      },
+      "check_da30_dr.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 828
+      },
+      "check_da40_unknown_protocol.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31705
+      },
+      "check_mc10_co.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 821
+      },
+      "check_mc20_ckasi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 809
+      },
+      "check_mc30_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1626
+      },
+      "check_mc40_lock.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 856
+      },
+      "check_mc50_restart.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1121
+      },
+      "check_mc60_out_of_range.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32496
+      },
+      "check_mc70_write_under_mask.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 820
+      },
+      "check_mc80_write.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 811
+      },
+      "check_cd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1004
+      },
+      "check_cd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2748
+      },
+      "check_cd30_acdi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 939
+      },
+      "check_cd40_acdi_writeback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 811
+      },
+      "check_st10_initiate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32228
+      },
+      "check_st20_reject_unsupported.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 844
+      },
+      "check_st30_buffer_negotiation.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1766
+      },
+      "check_st35_min_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1201
+      },
+      "check_st37_max_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1113
+      },
+      "check_st40_unknown_content_uid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1118
+      },
+      "check_st50_initiate_reply_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1135
+      },
+      "check_st60_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1123
+      },
+      "check_st65_data_proceed_flow.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1134
+      },
+      "check_st70_complete.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2126
+      },
+      "check_st80_terminate_error.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4976
+      },
+      "check_st85_stability.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32003
+      },
+      "check_st90_oir_fallback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1125
+      },
+      "check_st100_concurrent_same_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1443
+      },
+      "check_st110_concurrent_multi_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2391
+      },
+      "check_st120_sustained_transfer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1838
+      },
+      "check_st130_min_chunk_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1139
+      },
+      "check_st140_concurrent_sustained.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2138
+      },
+      "check_st150_asymmetric_buffers.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1633
+      },
+      "check_st155_negotiation_enforcement.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1131
+      },
+      "check_st170_zero_payload_flush.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1143
+      },
+      "check_st180_interleaved_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1440
+      },
+      "check_st190_suggested_did.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1682
+      },
+      "check_st200_complete_with_byte_count.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4235
+      },
+      "check_st210_reject_then_retry.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2304
+      },
+      "check_bt10_query.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1105
+      },
+      "check_bt20_set.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4172
+      },
+      "check_bt30_immediate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 3645
+      },
+      "check_bt40_multiset.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 7567
+      },
+      "check_bt50_freq.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 135815
+      },
+      "check_bt60_requested.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4172
+      },
+      "check_bt70_rollover.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 35828
+      },
+      "check_bt80_startup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1562
+      }
+    },
+    "broadcast-time-consumer": {
+      "check_fr10_init.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 622
+      },
+      "check_fr20_ame.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 661
+      },
+      "check_fr30_collide.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2226
+      },
+      "check_fr40_highbit.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 371
+      },
+      "check_fr50_capacity.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1129
+      },
+      "check_fr60_standard.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 25471
+      },
+      "check_me10_init.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 777
+      },
+      "check_me20_verify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2128
+      },
+      "check_me30_pip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1352
+      },
+      "check_me40_oir.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2167
+      },
+      "check_me50_dup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 555
+      },
+      "check_me60_pip_simple.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1064
+      },
+      "check_sn10_snip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1613
+      },
+      "check_ev10_ida.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1611
+      },
+      "check_ev20_idg.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2424
+      },
+      "check_ev30_ip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1604
+      },
+      "check_ev40_ic.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1610
+      },
+      "check_ev50_ini.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2377
+      },
+      "check_ev60_ewp.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30613
+      },
+      "check_ev70_lrn.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30626
+      },
+      "check_da30_dr.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 837
+      },
+      "check_da40_unknown_protocol.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31700
+      },
+      "check_mc10_co.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 819
+      },
+      "check_mc20_ckasi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 825
+      },
+      "check_mc30_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1635
+      },
+      "check_mc40_lock.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 851
+      },
+      "check_mc50_restart.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1071
+      },
+      "check_mc60_out_of_range.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32537
+      },
+      "check_mc70_write_under_mask.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 819
+      },
+      "check_mc80_write.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 811
+      },
+      "check_cd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1029
+      },
+      "check_cd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2809
+      },
+      "check_cd30_acdi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 964
+      },
+      "check_cd40_acdi_writeback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 819
+      },
+      "check_st10_initiate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32210
+      },
+      "check_st20_reject_unsupported.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 820
+      },
+      "check_st30_buffer_negotiation.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1669
+      },
+      "check_st35_min_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1122
+      },
+      "check_st37_max_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1117
+      },
+      "check_st40_unknown_content_uid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1123
+      },
+      "check_st50_initiate_reply_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1117
+      },
+      "check_st60_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1132
+      },
+      "check_st65_data_proceed_flow.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1134
+      },
+      "check_st70_complete.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2126
+      },
+      "check_st80_terminate_error.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4976
+      },
+      "check_st85_stability.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32028
+      },
+      "check_st90_oir_fallback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1136
+      },
+      "check_st100_concurrent_same_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1449
+      },
+      "check_st110_concurrent_multi_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2434
+      },
+      "check_st120_sustained_transfer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1820
+      },
+      "check_st130_min_chunk_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1130
+      },
+      "check_st140_concurrent_sustained.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2119
+      },
+      "check_st150_asymmetric_buffers.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1446
+      },
+      "check_st155_negotiation_enforcement.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1135
+      },
+      "check_st170_zero_payload_flush.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1178
+      },
+      "check_st180_interleaved_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1460
+      },
+      "check_st190_suggested_did.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1676
+      },
+      "check_st200_complete_with_byte_count.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4219
+      },
+      "check_st210_reject_then_retry.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2298
+      },
+      "check_bt100_consumer_startup.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 549
+      },
+      "check_bt110_consumer_sync.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1847
+      },
+      "check_bt120_consumer_startstop.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 3837
+      },
+      "check_bt130_consumer_rate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2837
+      }
+    },
+    "detector": {
+      "check_fr10_init.py": {
+        "verdict": "SKIP",
+        "reason": "",
+        "duration_ms": 621
+      },
+      "check_fr20_ame.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 672
+      },
+      "check_fr30_collide.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2289
+      },
+      "check_fr40_highbit.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 359
+      },
+      "check_fr50_capacity.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1088
+      },
+      "check_fr60_standard.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 25310
+      },
+      "check_me10_init.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 773
+      },
+      "check_me20_verify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2129
+      },
+      "check_me30_pip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1352
+      },
+      "check_me40_oir.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2162
+      },
+      "check_me50_dup.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 551
+      },
+      "check_me60_pip_simple.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1062
+      },
+      "check_sn10_snip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1615
+      },
+      "check_ev10_ida.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1614
+      },
+      "check_ev20_idg.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2423
+      },
+      "check_ev30_ip.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1634
+      },
+      "check_ev40_ic.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1630
+      },
+      "check_ev50_ini.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2442
+      },
+      "check_ev60_ewp.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30620
+      },
+      "check_ev70_lrn.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 30629
+      },
+      "check_da30_dr.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 888
+      },
+      "check_da40_unknown_protocol.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 31817
+      },
+      "check_mc10_co.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_mc20_ckasi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_mc30_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1619
+      },
+      "check_mc40_lock.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 856
+      },
+      "check_mc50_restart.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1041
+      },
+      "check_mc60_out_of_range.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32479
+      },
+      "check_mc70_write_under_mask.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 822
+      },
+      "check_mc80_write.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 813
+      },
+      "check_cd10_valid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1037
+      },
+      "check_cd20_read.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2858
+      },
+      "check_cd30_acdi.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1045
+      },
+      "check_cd40_acdi_writeback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 861
+      },
+      "check_st10_initiate.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32280
+      },
+      "check_st20_reject_unsupported.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 818
+      },
+      "check_st30_buffer_negotiation.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1667
+      },
+      "check_st35_min_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1119
+      },
+      "check_st37_max_buffer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1106
+      },
+      "check_st40_unknown_content_uid.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1122
+      },
+      "check_st50_initiate_reply_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1114
+      },
+      "check_st60_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1110
+      },
+      "check_st65_data_proceed_flow.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1127
+      },
+      "check_st70_complete.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2124
+      },
+      "check_st80_terminate_error.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4947
+      },
+      "check_st85_stability.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 32043
+      },
+      "check_st90_oir_fallback.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1273
+      },
+      "check_st100_concurrent_same_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1466
+      },
+      "check_st110_concurrent_multi_node.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2415
+      },
+      "check_st120_sustained_transfer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1840
+      },
+      "check_st130_min_chunk_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1150
+      },
+      "check_st140_concurrent_sustained.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2132
+      },
+      "check_st150_asymmetric_buffers.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1457
+      },
+      "check_st155_negotiation_enforcement.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1137
+      },
+      "check_st170_zero_payload_flush.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1131
+      },
+      "check_st180_interleaved_data_send.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1431
+      },
+      "check_st190_suggested_did.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1688
+      },
+      "check_st200_complete_with_byte_count.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 4249
+      },
+      "check_st210_reject_then_retry.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2320
+      },
+      "check_dd10_identify.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 2823
+      },
+      "check_dd20_event_format.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1618
+      },
+      "check_dd30_identify_producer.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1642
+      },
+      "check_dd40_track_empty.py": {
+        "verdict": "PASS",
+        "reason": "",
+        "duration_ms": 1624
+      }
+    }
+  },
+  "totals": {
+    "basic": {
+      "pass": 58,
+      "skip": 1,
+      "fail": 0,
+      "unknown": 0,
+      "total": 59
+    },
+    "train": {
+      "pass": 76,
+      "skip": 1,
+      "fail": 0,
+      "unknown": 0,
+      "total": 77
+    },
+    "broadcast-time-producer": {
+      "pass": 66,
+      "skip": 1,
+      "fail": 0,
+      "unknown": 0,
+      "total": 67
+    },
+    "broadcast-time-consumer": {
+      "pass": 61,
+      "skip": 2,
+      "fail": 0,
+      "unknown": 0,
+      "total": 63
+    },
+    "detector": {
+      "pass": 62,
+      "skip": 1,
+      "fail": 0,
+      "unknown": 0,
+      "total": 63
+    }
+  }
+}

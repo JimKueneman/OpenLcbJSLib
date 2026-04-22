@@ -1,0 +1,39 @@
+#!/bin/sh
+# Pre-commit hook for OpenLcbJSLib.
+#
+# Purpose: if any src/*.js file is staged, rebuild the bundle and stage the
+# updated dist/ and examples/*/openlcb.bundle.js so the committed source and
+# committed bundle never drift apart.
+#
+# Compatible with SourceTree, GitHub Desktop, command line, and IDEs — the
+# explicit PATH below ensures Homebrew-installed node/npm are found even when
+# GUI git clients launch the hook with a minimal environment.
+
+# Make sure node/npm are on PATH. macOS GUI git clients often strip PATH down
+# to /usr/bin:/bin. Add common install locations; harmless if they don't exist.
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+# Check: are any source files (src/**/*.js) staged?
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -q '^src/.*\.js$'; then
+    exit 0  # nothing to do
+fi
+
+echo "pre-commit: src/ changed, rebuilding bundle..."
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "pre-commit: node not found on PATH — install Node.js or adjust .githooks/pre-commit" >&2
+    echo "pre-commit: current PATH=$PATH" >&2
+    exit 1
+fi
+
+if ! npm run --silent build; then
+    echo "pre-commit: bundle build failed; aborting commit" >&2
+    exit 1
+fi
+
+# Stage any bundles that changed so they land in the same commit as the source
+# change that produced them.
+git add dist/openlcb.bundle.js examples/*/openlcb.bundle.js 2>/dev/null
+
+echo "pre-commit: bundle rebuilt and staged."
+exit 0

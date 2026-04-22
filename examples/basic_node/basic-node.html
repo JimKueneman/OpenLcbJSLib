@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenLcbJSLib — Basic Node Example</title>
+<style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; color: #222; }
+    h1 { font-size: 1.4em; }
+    section { border: 1px solid #ccc; border-radius: 6px; padding: 1em; margin: 1em 0; }
+    label { display: inline-block; width: 11em; }
+    input[type=text] { width: 20em; padding: 0.25em; }
+    button { padding: 0.35em 0.9em; margin-right: 0.5em; }
+    .status { font-weight: bold; }
+    .status.connected { color: #2a7f2a; }
+    .status.connecting { color: #b88600; }
+    .status.disconnected { color: #a00; }
+    #log { font-family: Menlo, Consolas, monospace; font-size: 0.85em; white-space: pre-wrap; height: 14em; overflow: auto; background: #f6f6f6; border: 1px solid #ddd; padding: 0.5em; }
+    .row { margin-bottom: 0.5em; }
+</style>
+</head>
+<body>
+
+<h1>OpenLcbJSLib — Basic Node Example</h1>
+
+<p>Connects one virtual OpenLCB node to a GridConnect WebSocket server (JMRI,
+an OpenLCB hub, etc.) and lets you publish PC Event Reports. Open the browser
+console to see the full protocol trace.</p>
+
+<section>
+    <div class="row">
+        <label for="url">WebSocket URL</label>
+        <input id="url" type="text" value="ws://localhost:12022/">
+    </div>
+    <div class="row">
+        <label for="nodeId">Node ID (hex)</label>
+        <input id="nodeId" type="text" value="050101010700">
+    </div>
+    <div class="row">
+        <label for="consumerCount">Consumer count</label>
+        <input id="consumerCount" type="number" min="0" max="255" value="0">
+    </div>
+    <div class="row">
+        <label for="producerCount">Producer count</label>
+        <input id="producerCount" type="number" min="0" max="255" value="0">
+    </div>
+    <div class="row">
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
+        <span id="state" class="status disconnected">disconnected</span>
+        <span id="alias"></span>
+    </div>
+</section>
+
+<section>
+    <div class="row">
+        <label for="event">Event ID (hex, 16 chars)</label>
+        <input id="event" type="text" value="0101000000000201">
+    </div>
+    <div class="row">
+        <button id="sendPcer" disabled>Send PC Event Report</button>
+    </div>
+</section>
+
+<section>
+    <h2 style="font-size:1em;margin-top:0">Log</h2>
+    <div id="log"></div>
+</section>
+
+<!--
+    The library is shipped as a single IIFE bundle next to this HTML.
+    Run `npm run build` from the project root to regenerate openlcb.bundle.js.
+    The bundle installs a single global `OpenLCB`; we destructure what we need.
+-->
+<script src="openlcb.bundle.js"></script>
+<script>
+const { OpenLcbConfig, defines } = OpenLCB;
+
+const $ = (id) => document.getElementById(id);
+const log = (msg) => {
+    const t = new Date().toISOString().slice(11, 23);
+    const el = $('log');
+    el.textContent += `[${t}] ${msg}\n`;
+    el.scrollTop = el.scrollHeight;
+};
+
+let config = null;
+let node = null;
+
+function setState(name) {
+    const el = $('state');
+    el.textContent = name;
+    el.className = `status ${name}`;
+    const locked = name === 'connected' || name === 'connecting';
+    $('connect').disabled = locked;
+    $('disconnect').disabled = name !== 'connected';
+    $('sendPcer').disabled = name !== 'connected' || !node || node.state.runState !== defines.RUNSTATE_RUN;
+    $('url').disabled = locked;
+    $('nodeId').disabled = locked;
+    $('consumerCount').disabled = locked;
+    $('producerCount').disabled = locked;
+}
+
+$('connect').addEventListener('click', () => {
+    const url = $('url').value.trim();
+    const nodeIdHex = $('nodeId').value.trim();
+    if (!url || !nodeIdHex) return;
+
+    const nodeId = BigInt('0x' + nodeIdHex);
+    const clamp = (v) => Math.max(0, Math.min(255, Number.isFinite(v) ? Math.floor(v) : 0));
+    const consumerCount = clamp(parseInt($('consumerCount').value, 10));
+    const producerCount = clamp(parseInt($('producerCount').value, 10));
+    $('consumerCount').value = consumerCount;
+    $('producerCount').value = producerCount;
+
+    config = new OpenLcbConfig({
+        websocketUrl: url,
+        callbacks: {
+            onTransportConnect:    () => { setState('connected'); log('transport connected'); },
+            onTransportDisconnect: (clean, code) => { setState('disconnected'); log(`transport disconnected (clean=${clean}, code=${code})`); node = null; },
+            onTransportError:      (err) => log(`transport error: ${err?.message ?? err}`),
+            onLoginComplete: (n) => {
+                log(`node ${n.id.toString(16)} login complete, alias=0x${n.alias.toString(16)}`);
+                $('alias').textContent = ` — alias 0x${n.alias.toString(16)}`;
+                setState('connected'); // re-enable sendPcer
+                return true;
+            },
+            onConsumedEventIdentified: (n, idx, eventId, status) => {
+                log(`consumed event: ${eventId.toString(16)} status=${status}`);
+            },
+            onPcEventReport: (n, eventId) => {
+                log(`PCER received: ${eventId.toString(16)}`);
+            },
+        },
+        // Minimal configuration memory: return zeros, accept any write.
+        configMemoryRead:  (n, addr, count, buf) => { buf.fill(0); return count; },
+        configMemoryWrite: (n, addr, count) => count,
+    });
+
+    node = config.createNode(nodeId, {
+        // Minimal node parameters — Event Exchange protocol only.
+        protocolSupport: defines.PSI_EVENT_EXCHANGE | defines.PSI_SIMPLE_NODE_INFORMATION,
+        consumerCountAutocreate: consumerCount,
+        producerCountAutocreate: producerCount,
+        snip: {
+            mfgVersion: 1,
+            name: 'OpenLcbJSLib',
+            model: 'Basic Node',
+            hardwareVersion: '1.0',
+            softwareVersion: defines.OPENLCB_JS_LIB_VERSION,
+            userVersion: 1,
+        },
+        addressSpaceConfigurationDefinitionInfo: { present: false, highestAddress: 0 },
+        addressSpaceAll:                          { present: false, highestAddress: 0 },
+        addressSpaceConfigMemory:                 { present: false, highestAddress: 0 },
+        addressSpaceAcdiManufacturer:             { present: false, highestAddress: 0 },
+        addressSpaceAcdiUser:                     { present: false, highestAddress: 0 },
+        addressSpaceTrainFunctionDefinitionInfo:  { present: false, highestAddress: 0 },
+        addressSpaceTrainFunctionConfigMemory:    { present: false, highestAddress: 0 },
+        addressSpaceFirmware:                     { present: false, highestAddress: 0 },
+        configurationOptions: {},
+    });
+
+    log(`node allocated: ${node.id.toString(16)}`);
+    setState('connecting');
+    config.start();
+});
+
+$('disconnect').addEventListener('click', () => {
+    if (config) {
+        config.stop();
+        log('stopped');
+    }
+    $('alias').textContent = '';
+});
+
+$('sendPcer').addEventListener('click', () => {
+    const eventHex = $('event').value.trim();
+    if (!eventHex || !config || !node) return;
+    const eventId = BigInt('0x' + eventHex);
+    const ok = config.application.sendEventPcReport(node, eventId);
+    log(`sendEventPcReport(${eventId.toString(16)}) → ${ok}`);
+});
+</script>
+</body>
+</html>

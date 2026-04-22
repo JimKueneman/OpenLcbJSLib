@@ -1,0 +1,20 @@
+{
+    "name": "openlcb-js-lib",
+    "version": "0.1.0",
+    "description": "OpenLCB (LCC) client library for the browser — WebSocket + GridConnect transport.",
+    "type": "module",
+    "main": "./src/index.js",
+    "exports": {
+        ".": "./src/index.js"
+    },
+    "scripts": {
+        "conformance": "node test/harness/run-conformance.mjs",
+        "build": "node tools/build-bundles.mjs",
+        "build:minify": "node tools/build-bundles.mjs --minify",
+        "build:debug": "node tools/build-bundles.mjs --sourcemap",
+        "prepare": "git config core.hooksPath .githooks || true"
+    },
+    "devDependencies": {
+        "esbuild": "^0.28.0"
+    }
+}
