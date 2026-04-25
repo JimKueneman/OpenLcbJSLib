@@ -317,3 +317,85 @@ The C library has ~53 `*_Test.cxx` fixtures with high per-module coverage plus m
 | GridConnect codec | `src/openlcb/openlcb_gridconnect.c` |
 | Alias table | `src/drivers/canbus/internal_node_alias_table.c` |
 | Listener alias table | `src/drivers/canbus/alias_mapping_listener.c` |
+
+---
+
+## Example App Layout — Internal Convention (not a user-facing rule)
+
+When adding a new example under `examples/<name>/`, mirror the
+OpenLcbCLib `applications/.../<name>/` pattern: each "type" of OpenLCB
+node a host allocates gets one configuration file and (when present)
+one CDI XML plus one FDI XML.  The eventual generator tool (see
+`tools/`, not yet built) produces these `.js` files from the XML;
+until it lands, they are hand-derived in lockstep.
+
+This is for us when authoring examples in this repo.  It is NOT a
+rule end users must follow when building their own apps — they can
+structure their projects however they like; the library only sees the
+parameters object passed to `createNode()`.
+
+### Single-type apps (one node type)
+
+Unsuffixed names:
+
+| File | Purpose |
+|------|---------|
+| `openlcb_user_config.js` | parameters struct (mirror of `OpenLcbUserConfig_node_parameters` in C) |
+| `cdi.xml` | source CDI XML (input to generator) |
+| `fdi.xml` | source FDI XML (only if the node is a train) |
+
+Examples today: `examples/basic_node/`, `examples/train_throttle/`.
+
+### Multi-type apps (host with N virtual node types)
+
+Every type's files take a `_<type>` suffix, including the host's own
+root.  No mixing of suffixed and unsuffixed names within one app:
+
+| File pattern | Purpose |
+|--------------|---------|
+| `openlcb_user_config_<type>.js` | per-type parameters file (fixed struct for the host root, factory function for each virtual type) |
+| `cdi_<type>.xml` | per-type CDI XML |
+| `fdi_<type>.xml` | per-type FDI XML |
+
+Example today — Train Command Station (two types: the CS host root and
+the virtual-train type):
+
+```
+examples/train_command_station/
+├── command-station.{html,css,js}
+├── openlcb_user_config_command_station.js   ← host root config
+├── openlcb_user_config_train.js             ← per-train factory
+├── cdi_command_station.xml                  ← (when added)
+├── cdi_train.xml                            ← (when added)
+└── fdi_train.xml                            ← (when added)
+```
+
+### Conventions inside each file
+
+- The exported parameters identifier matches the C identifier
+  letter-for-letter — `OpenLcbUserConfig_node_parameters` for fixed
+  structs.  Cross-binding consistency wins over JS camelCase orthodoxy.
+- A factory file additionally exports `makeXxxNodeParameters({...})`
+  taking the per-instance bits (DCC address, name, …) and returning a
+  fresh parameters object.  Shared bytes (e.g. an FDI `Uint8Array`)
+  are module-level constants captured by the factory closure; the
+  library copies them per `createNode()` call into C heap, so the JS
+  source bytes are shared but every C-side `parameters->fdi` pointer
+  is independent.
+- A `NODE_ID` `const` is exported at module top-level for the form's
+  default Node ID input.  The user can still override before connect.
+
+### Future generator CLI (not yet built)
+
+Takes one XML pair, emits one `.js` file.  The `--type` flag controls
+naming uniformly:
+
+```
+openlcb-gen-params --cdi cdi.xml --out openlcb_user_config.js
+openlcb-gen-params --cdi cdi_train.xml --fdi fdi_train.xml \
+                   --out openlcb_user_config_train.js \
+                   --type train --factory
+```
+
+`--type <name>` omitted → unsuffixed file names.  `--type <name>`
+present → all output filenames take the `_<name>` suffix.
