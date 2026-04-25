@@ -61,6 +61,10 @@ async function buildOne({ outfile, minify }) {
         minify,
         sourcemap: wantSourcemap,
         legalComments: 'none',
+        // The Emscripten glue (wasm/openlcb-core.mjs) guards Node-only
+        // imports behind runtime checks.  Mark them external so esbuild
+        // doesn't try to resolve them for the browser target.
+        external: ['node:module', 'node:path', 'node:url', 'node:fs', 'fs', 'path', 'url', 'module'],
         banner: {
             js: `/* OpenLcbJSLib v${version} — https://github.com/... — generated bundle, do not edit by hand */`,
         },

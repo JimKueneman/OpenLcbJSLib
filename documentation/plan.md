@@ -157,7 +157,7 @@ OpenLcbJSLib/
       can/
         types.js                      <- can_types.h
         utilities.js                  <- can_utilities.h/c (MTI extraction from CAN ID)
-        alias-mappings.js             <- alias_mappings.h/c
+        alias-mappings.js             <- internal_node_alias_table.h/c
         alias-mapping-listener.js     <- alias_mapping_listener.h/c (listener alias table)
         buffer-fifo.js                <- can_buffer_fifo.h/c (simple array queue)
         rx-message-handler.js         <- can_rx_message_handler.h/c (multi-frame assembly)
@@ -315,5 +315,5 @@ The C library has ~53 `*_Test.cxx` fixtures with high per-module coverage plus m
 | Alias negotiation | `src/drivers/canbus/can_login_statemachine.c` |
 | CAN login frame handling | `src/drivers/canbus/can_login_message_handler.c` |
 | GridConnect codec | `src/openlcb/openlcb_gridconnect.c` |
-| Alias table | `src/drivers/canbus/alias_mappings.c` |
+| Alias table | `src/drivers/canbus/internal_node_alias_table.c` |
 | Listener alias table | `src/drivers/canbus/alias_mapping_listener.c` |

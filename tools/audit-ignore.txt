@@ -1,0 +1,12 @@
+# Entries deliberately excluded from the WASM coverage audit.
+# Format: one symbol per line; `# comment` to end of line.
+# See documentation/style_guides/wasm_style_guide.md §5.
+
+# --- Pass 3: WASM exports unused by the JS wrapper ---------------------
+
+# CDI / FDI XML blob loading is wired at the WASM level but not yet
+# surfaced through a wrapper facade method.  Deferred to v2 per the
+# throttle / command-station PLAN.md docs (FDI download, CDI config
+# editor).  Re-evaluate when those features ship.
+wasm_node_set_cdi
+wasm_node_set_fdi

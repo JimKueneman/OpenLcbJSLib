@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>OpenLCB Throttle</title>
+<link rel="stylesheet" href="throttle.css">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="title" id="screenTitle">Connect</div>
+    <span class="pill disconnected" id="statusPill">disconnected</span>
+    <button class="btn ghost" id="btnTopDisconnect" hidden>Disconnect</button>
+</div>
+
+<main>
+
+<!-- =================== CONNECT =================== -->
+<section class="screen active" data-screen="connect">
+    <div class="card">
+        <h2>Transport</h2>
+        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12022/"></div>
+        <div class="row"><label for="nodeId">Throttle Node ID</label><input id="nodeId" type="text" value="050101010701"></div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="btnConnect">Connect</button>
+            <button class="btn ghost" id="btnDisconnect" disabled>Disconnect</button>
+        </div>
+        <div class="kicker" id="connInfo">Not connected.</div>
+    </div>
+</section>
+
+<!-- =================== ROSTER =================== -->
+<section class="screen" data-screen="roster">
+    <div class="card">
+        <h2>Find a train</h2>
+        <div class="row"><label for="q">Address or name</label><input id="q" type="text" placeholder="e.g. 415" inputmode="numeric"></div>
+        <div>
+            <div class="kicker" style="margin-bottom:6px">Flags</div>
+            <div class="chip-group" id="flagGroup">
+                <span class="chip" data-flag="exact">Exact</span>
+                <span class="chip" data-flag="addr">Addr only</span>
+                <span class="chip" data-flag="alloc">Allocate</span>
+            </div>
+        </div>
+        <div>
+            <div class="kicker" style="margin-bottom:6px">Track protocol</div>
+            <div class="chip-group" id="protoGroup">
+                <span class="chip" data-proto="any">Any</span>
+                <span class="chip" data-proto="openlcb">OpenLCB</span>
+                <span class="chip" data-proto="mfx">MFX</span>
+                <span class="chip" data-proto="mm">MM</span>
+                <span class="chip on" data-proto="dcc">DCC</span>
+            </div>
+        </div>
+        <div id="dccOptions">
+            <div class="kicker" style="margin-bottom:6px">DCC options</div>
+            <div class="chip-group" id="dccFlagGroup">
+                <span class="chip on" data-dcc="long">Long addr</span>
+            </div>
+            <div class="kicker" style="margin:8px 0 6px">DCC speed steps</div>
+            <div class="chip-group" id="stepGroup">
+                <span class="chip" data-step="14">14</span>
+                <span class="chip" data-step="28">28</span>
+                <span class="chip on" data-step="128">128</span>
+            </div>
+        </div>
+        <div id="mmOptions" hidden>
+            <div class="kicker" style="margin-bottom:6px">MM version</div>
+            <div class="chip-group" id="mmGroup">
+                <span class="chip on" data-mm="any">Any</span>
+                <span class="chip" data-mm="v1">v1 (14 steps + F0)</span>
+                <span class="chip" data-mm="v2">v2 (dir + F0-F4)</span>
+                <span class="chip" data-mm="v2ext">v2 ext (F5-F8)</span>
+            </div>
+        </div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="btnSearch">Search</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="flex-between"><h2>Results</h2><span class="kicker" id="resultCount">—</span></div>
+        <div class="roster" id="roster"></div>
+    </div>
+</section>
+
+<!-- =================== THROTTLE =================== -->
+<section class="screen" data-screen="throttle">
+    <div class="train-head">
+        <div class="grow">
+            <div class="name" id="trName">—</div>
+            <div class="sub" id="trSub">—</div>
+        </div>
+        <div class="alerter" id="alerter" title="Heartbeat"></div>
+        <button class="btn ghost" id="btnRelease">Release</button>
+    </div>
+
+    <div class="speedbox">
+        <div class="readout">
+            <span class="mph" id="spVal">0</span>
+            <span class="unit" id="spUnit">mph</span>
+            <span class="step" id="spStep">step 0/128</span>
+        </div>
+        <div class="slider-col">
+            <input class="vslider" id="speed" type="range" min="0" max="128" value="0">
+        </div>
+        <div class="dir-and-quick">
+            <div class="dir-row">
+                <button class="btn on" id="btnFwd">FWD</button>
+                <button class="btn" id="btnRev">REV</button>
+            </div>
+            <div class="quick-row">
+                <button class="btn estop" id="btnEStop">E-STOP</button>
+            </div>
+        </div>
+        <div class="meta">
+            <span>Set <b id="mSet">0</b></span>
+            <span>Cmd <b id="mCmd">—</b></span>
+            <span>Act <b id="mAct">—</b></span>
+            <span style="margin-left:auto">Unit
+                <select id="unitSel" style="padding:2px 6px">
+                    <option value="mph" selected>mph</option>
+                    <option value="kmh">km/h</option>
+                    <option value="mps">m/s</option>
+                </select>
+            </span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Functions</h2>
+        <div class="fn-grid" id="fnGrid"></div>
+    </div>
+
+    <details class="emergency">
+        <summary>Layout Emergency</summary>
+        <div class="content">
+            <button class="btn danger" id="btnEStopAll">Emergency Stop All</button>
+            <button class="btn" id="btnClearEStopAll">Clear Stop All</button>
+            <button class="btn danger" id="btnEOffAll">Emergency Off All</button>
+            <button class="btn" id="btnClearEOffAll">Clear Off All</button>
+        </div>
+    </details>
+</section>
+
+</main>
+
+<details class="log">
+    <summary>Log</summary>
+    <div id="log"></div>
+</details>
+
+<script type="module" src="throttle.js"></script>
+</body>
+</html>

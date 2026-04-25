@@ -47,7 +47,6 @@ console to see the full protocol trace.</p>
         <button id="connect">Connect</button>
         <button id="disconnect" disabled>Disconnect</button>
         <span id="state" class="status disconnected">disconnected</span>
-        <span id="alias"></span>
     </div>
 </section>
 
@@ -67,13 +66,15 @@ console to see the full protocol trace.</p>
 </section>
 
 <!--
-    The library is shipped as a single IIFE bundle next to this HTML.
-    Run `npm run build` from the project root to regenerate openlcb.bundle.js.
-    The bundle installs a single global `OpenLCB`; we destructure what we need.
+    ESM — imports the wrapper directly.  Serve this file from an HTTP server
+    (e.g. `python3 -m http.server 8766` from the project root) and open
+    http://localhost:8766/examples/basic_node/basic-node.html .
 -->
-<script src="openlcb.bundle.js"></script>
-<script>
-const { OpenLcbConfig, defines } = OpenLCB;
+<script type="module">
+import {
+    OpenLcb, WebSocketTransport, PSI,
+    TransportBusyError,
+} from '../../src/index.js';
 
 const $ = (id) => document.getElementById(id);
 const log = (msg) => {
@@ -83,7 +84,7 @@ const log = (msg) => {
     el.scrollTop = el.scrollHeight;
 };
 
-let config = null;
+let openlcb = null;
 let node = null;
 
 function setState(name) {
@@ -93,14 +94,14 @@ function setState(name) {
     const locked = name === 'connected' || name === 'connecting';
     $('connect').disabled = locked;
     $('disconnect').disabled = name !== 'connected';
-    $('sendPcer').disabled = name !== 'connected' || !node || node.state.runState !== defines.RUNSTATE_RUN;
+    $('sendPcer').disabled = name !== 'connected' || !node;
     $('url').disabled = locked;
     $('nodeId').disabled = locked;
     $('consumerCount').disabled = locked;
     $('producerCount').disabled = locked;
 }
 
-$('connect').addEventListener('click', () => {
+$('connect').addEventListener('click', async () => {
     const url = $('url').value.trim();
     const nodeIdHex = $('nodeId').value.trim();
     if (!url || !nodeIdHex) return;
@@ -112,17 +113,34 @@ $('connect').addEventListener('click', () => {
     $('consumerCount').value = consumerCount;
     $('producerCount').value = producerCount;
 
-    config = new OpenLcbConfig({
-        websocketUrl: url,
-        callbacks: {
-            onTransportConnect:    () => { setState('connected'); log('transport connected'); },
-            onTransportDisconnect: (clean, code) => { setState('disconnected'); log(`transport disconnected (clean=${clean}, code=${code})`); node = null; },
-            onTransportError:      (err) => log(`transport error: ${err?.message ?? err}`),
+    setState('connecting');
+    try {
+        openlcb = await OpenLcb.create({
+            transport: new WebSocketTransport({ url }),
+            callbacks: {
+                onTransportConnect:    () => { log('transport connected'); },
+                onTransportDisconnect: () => { setState('disconnected'); log('transport disconnected'); node = null; },
+                onTransportError:      (err) => log(`transport error: ${err?.message ?? err}`),
+            },
+        });
+
+        node = openlcb.createNode(nodeId, {
+            // Minimum parameters — Event Exchange + SNIP only.
+            protocolSupport:          [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
+            consumerCountAutocreate:  consumerCount,
+            producerCountAutocreate:  producerCount,
+            snip: {
+                mfgVersion: 1,
+                name: 'OpenLcbJSLib',
+                model: 'Basic Node',
+                hardwareVersion: '1.0',
+                softwareVersion: '0.1',
+                userVersion: 1,
+            },
+        }, {
             onLoginComplete: (n) => {
-                log(`node ${n.id.toString(16)} login complete, alias=0x${n.alias.toString(16)}`);
-                $('alias').textContent = ` — alias 0x${n.alias.toString(16)}`;
+                log(`node ${n.id.toString(16)} login complete`);
                 setState('connected'); // re-enable sendPcer
-                return true;
             },
             onConsumedEventIdentified: (n, idx, eventId, status) => {
                 log(`consumed event: ${eventId.toString(16)} status=${status}`);
@@ -130,55 +148,40 @@ $('connect').addEventListener('click', () => {
             onPcEventReport: (n, eventId) => {
                 log(`PCER received: ${eventId.toString(16)}`);
             },
-        },
-        // Minimal configuration memory: return zeros, accept any write.
-        configMemoryRead:  (n, addr, count, buf) => { buf.fill(0); return count; },
-        configMemoryWrite: (n, addr, count) => count,
-    });
+            // Minimal configuration memory: return zeros, accept any write.
+            onConfigMemRead:  (n, addr, count, buf) => { buf.fill(0); return count; },
+            onConfigMemWrite: (n, addr, count) => count,
+        });
 
-    node = config.createNode(nodeId, {
-        // Minimal node parameters — Event Exchange protocol only.
-        protocolSupport: defines.PSI_EVENT_EXCHANGE | defines.PSI_SIMPLE_NODE_INFORMATION,
-        consumerCountAutocreate: consumerCount,
-        producerCountAutocreate: producerCount,
-        snip: {
-            mfgVersion: 1,
-            name: 'OpenLcbJSLib',
-            model: 'Basic Node',
-            hardwareVersion: '1.0',
-            softwareVersion: defines.OPENLCB_JS_LIB_VERSION,
-            userVersion: 1,
-        },
-        addressSpaceConfigurationDefinitionInfo: { present: false, highestAddress: 0 },
-        addressSpaceAll:                          { present: false, highestAddress: 0 },
-        addressSpaceConfigMemory:                 { present: false, highestAddress: 0 },
-        addressSpaceAcdiManufacturer:             { present: false, highestAddress: 0 },
-        addressSpaceAcdiUser:                     { present: false, highestAddress: 0 },
-        addressSpaceTrainFunctionDefinitionInfo:  { present: false, highestAddress: 0 },
-        addressSpaceTrainFunctionConfigMemory:    { present: false, highestAddress: 0 },
-        addressSpaceFirmware:                     { present: false, highestAddress: 0 },
-        configurationOptions: {},
-    });
-
-    log(`node allocated: ${node.id.toString(16)}`);
-    setState('connecting');
-    config.start();
+        log(`node allocated: ${node.id.toString(16)}`);
+        await openlcb.start();
+    } catch (err) {
+        log(`start failed: ${err?.message ?? err}`);
+        setState('disconnected');
+    }
 });
 
-$('disconnect').addEventListener('click', () => {
-    if (config) {
-        config.stop();
+$('disconnect').addEventListener('click', async () => {
+    if (openlcb) {
+        await openlcb.stop();
         log('stopped');
     }
-    $('alias').textContent = '';
 });
 
 $('sendPcer').addEventListener('click', () => {
     const eventHex = $('event').value.trim();
-    if (!eventHex || !config || !node) return;
+    if (!eventHex || !openlcb || !node) return;
     const eventId = BigInt('0x' + eventHex);
-    const ok = config.application.sendEventPcReport(node, eventId);
-    log(`sendEventPcReport(${eventId.toString(16)}) → ${ok}`);
+    try {
+        node.sendPcer(eventId);
+        log(`sendPcer(${eventId.toString(16)}) ok`);
+    } catch (e) {
+        if (e instanceof TransportBusyError) {
+            log(`sendPcer busy, retry later`);
+        } else {
+            log(`sendPcer error: ${e?.message ?? e}`);
+        }
+    }
 });
 </script>
 </body>

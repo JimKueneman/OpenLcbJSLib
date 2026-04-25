@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenLCB Command Station</title>
+<link rel="stylesheet" href="command-station.css">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="title">OpenLCB Command Station</div>
+    <span class="pill disconnected" id="statusPill">disconnected</span>
+    <span class="kicker" id="csIdent"></span>
+    <div class="spacer"></div>
+    <div class="emergency-group">
+        <button class="btn danger"  id="btnEStopAll">Emergency Stop All</button>
+        <button class="btn"         id="btnClearEStop">Clear Stop</button>
+        <button class="btn danger"  id="btnEOffAll">Emergency Off All</button>
+        <button class="btn"         id="btnClearEOff">Clear Off</button>
+    </div>
+</div>
+
+<main>
+
+<!-- ========== LEFT PANE ========== -->
+<section class="pane left">
+
+<div class="card">
+    <h2>Connection</h2>
+    <div class="frow"><label>WS URL</label><input id="url" type="text" value="ws://localhost:12022/"></div>
+    <div class="frow"><label>CS Base ID</label><input id="baseId" type="text" value="050101010800"></div>
+    <div class="bar">
+        <button class="btn primary" id="btnConnect">Connect</button>
+        <button class="btn"         id="btnDisconnect" disabled>Disconnect</button>
+    </div>
+    <div class="kicker" id="connInfo" style="margin-top:8px">Not connected.</div>
+</div>
+
+<details class="card debug-card">
+    <summary><h2 style="display:inline;margin:0">Debug tools</h2><span class="kicker" style="margin-left:8px">manual train creation — not used in normal operation</span></summary>
+    <div style="margin-top:10px">
+    <div class="kicker" style="margin-bottom:6px">Add Train</div>
+    <div class="frow"><label>DCC addr</label><input id="newAddr" type="number" min="1" max="10239" value="3"></div>
+    <div class="frow"><label>Name</label><input id="newName" type="text" placeholder="optional"></div>
+    <div class="frow"><label>Speed steps</label>
+        <select id="newSteps">
+            <option value="14">14</option>
+            <option value="28">28</option>
+            <option value="128" selected>128</option>
+        </select>
+    </div>
+    <div class="frow">
+        <label>Addr type</label>
+        <div class="chip-group" id="addrTypeGroup" style="flex:1">
+            <span class="chip on" data-addr="short">Short</span>
+            <span class="chip"    data-addr="long">Long</span>
+            <span class="chip"    data-addr="auto">Auto (≥128 long)</span>
+        </div>
+    </div>
+    <div class="bar">
+        <button class="btn primary" id="btnAddTrain">Add Train</button>
+    </div>
+    <div class="kicker" style="margin-top:8px">Creates a virtual train node and registers it on the bus. In normal operation trains are created automatically when a throttle searches with the Allocate flag.</div>
+    </div>
+</details>
+
+<div class="card">
+    <h2>Selection</h2>
+    <div id="selInfo" class="kicker">No train selected. Click a roster row to select.</div>
+    <div class="bar" id="selActions" style="display:none">
+        <button class="btn"        id="btnForceEStop">Force EStop</button>
+        <button class="btn danger" id="btnRemove">Remove</button>
+    </div>
+</div>
+
+</section>
+
+<!-- ========== RIGHT PANE ========== -->
+<section class="pane right">
+
+<div class="roster-wrap">
+    <table class="roster" id="rosterTable">
+        <thead>
+            <tr>
+                <th class="col-addr">DCC</th>
+                <th class="col-long">Long</th>
+                <th class="col-name">Name</th>
+                <th class="col-speed">Speed</th>
+                <th class="col-dir">Dir</th>
+                <th class="col-fn">Functions</th>
+                <th class="col-ctrl">Controller</th>
+                <th class="col-hb">HB</th>
+                <th class="col-act">Last Activity</th>
+            </tr>
+        </thead>
+        <tbody id="rosterBody"></tbody>
+    </table>
+</div>
+
+<div class="logbox">
+    <header>
+        <span class="title">Track Log</span>
+        <span class="kicker">(mock driver output)</span>
+        <div style="flex:1"></div>
+        <button class="btn small" id="btnClearLog">Clear</button>
+    </header>
+    <div class="body" id="log"></div>
+</div>
+
+</section>
+
+</main>
+
+<script type="module" src="command-station.js"></script>
+</body>
+</html>
