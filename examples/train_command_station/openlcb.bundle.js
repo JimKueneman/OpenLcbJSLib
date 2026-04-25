@@ -793,29 +793,29 @@ var OpenLCB = (() => {
         var lnode = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainListenerDetachReply(nid, lnode, $4);
       }
-    }, 10231: ($0, $1, $2, $3, $4, $5) => {
+    }, 10231: ($0, $1, $2, $3, $4, $5, $6) => {
       if (Module.onTrainListenerQueryReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
-        var lnode = BigInt($4) | BigInt($5) << 32n;
-        Module.onTrainListenerQueryReply(nid, $2, $3, lnode);
+        var lnode = BigInt($5) | BigInt($6) << 32n;
+        Module.onTrainListenerQueryReply(nid, $2, $3, $4, lnode);
       }
-    }, 10421: ($0, $1, $2) => {
+    }, 10425: ($0, $1, $2) => {
       if (Module.onTrainReserveReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainReserveReply(nid, $2);
       }
-    }, 10542: ($0, $1, $2) => {
+    }, 10546: ($0, $1, $2) => {
       if (Module.onTrainHeartbeatRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainHeartbeatRequest(nid, $2 >>> 0);
       }
-    }, 10677: ($0, $1, $2, $3) => {
+    }, 10681: ($0, $1, $2, $3) => {
       if (Module.onTrainSearchMatched) {
         var nid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var eid = BigInt($2 >>> 0) | BigInt($3 >>> 0) << 32n;
         Module.onTrainSearchMatched(nid, eid);
       }
-    }, 10869: ($0, $1) => {
+    }, 10873: ($0, $1) => {
       if (Module.onTrainSearchNoMatch) {
         var eid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var v = Module.onTrainSearchNoMatch(eid);
@@ -823,36 +823,36 @@ var OpenLCB = (() => {
         if (typeof v === "number") return v;
       }
       return 0;
-    }, 11100: ($0, $1, $2, $3, $4) => {
+    }, 11104: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainSearchReply) {
         var sid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var alias = $2 & 4095;
         var eid = BigInt($3 >>> 0) | BigInt($4 >>> 0) << 32n;
         Module.onTrainSearchReply(sid, alias, eid);
       }
-    }, 11319: ($0) => {
+    }, 11323: ($0) => {
       if (Module.onStreamInitiateRequest) {
         return Module.onStreamInitiateRequest($0) ? 1 : 0;
       }
       return 1;
-    }, 11424: ($0) => {
+    }, 11428: ($0) => {
       if (Module.onStreamInitiateReply) {
         Module.onStreamInitiateReply($0);
       }
-    }, 11500: ($0) => {
+    }, 11504: ($0) => {
       if (Module.onStreamDataReceived) {
         Module.onStreamDataReceived($0);
       }
-    }, 11574: ($0) => {
+    }, 11578: ($0) => {
       if (Module.onStreamDataProceed) {
         Module.onStreamDataProceed($0);
       }
-    }, 11646: ($0) => {
+    }, 11650: ($0) => {
       if (Module.onStreamComplete) {
         Module.onStreamComplete($0);
       }
     } };
-    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_set_heartbeat_timeout, _wasm_train_get_heartbeat_timeout, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_train_get_reserved_by_node_id, _wasm_train_get_listener_count, _wasm_train_get_listener_at, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
     function assignWasmExports(wasmExports2) {
       _wasm_initialize = Module["_wasm_initialize"] = wasmExports2["wasm_initialize"];
       _wasm_run = Module["_wasm_run"] = wasmExports2["wasm_run"];
@@ -933,6 +933,8 @@ var OpenLCB = (() => {
       _wasm_train_is_long_address = Module["_wasm_train_is_long_address"] = wasmExports2["wasm_train_is_long_address"];
       _wasm_train_set_speed_steps = Module["_wasm_train_set_speed_steps"] = wasmExports2["wasm_train_set_speed_steps"];
       _wasm_train_get_speed_steps = Module["_wasm_train_get_speed_steps"] = wasmExports2["wasm_train_get_speed_steps"];
+      _wasm_train_set_heartbeat_timeout = Module["_wasm_train_set_heartbeat_timeout"] = wasmExports2["wasm_train_set_heartbeat_timeout"];
+      _wasm_train_get_heartbeat_timeout = Module["_wasm_train_get_heartbeat_timeout"] = wasmExports2["wasm_train_get_heartbeat_timeout"];
       _wasm_train_send_query_controller = Module["_wasm_train_send_query_controller"] = wasmExports2["wasm_train_send_query_controller"];
       _wasm_train_send_reserve = Module["_wasm_train_send_reserve"] = wasmExports2["wasm_train_send_reserve"];
       _wasm_train_send_release_reserve = Module["_wasm_train_send_release_reserve"] = wasmExports2["wasm_train_send_release_reserve"];
@@ -940,6 +942,9 @@ var OpenLCB = (() => {
       _wasm_train_send_listener_detach = Module["_wasm_train_send_listener_detach"] = wasmExports2["wasm_train_send_listener_detach"];
       _wasm_train_send_listener_attach = Module["_wasm_train_send_listener_attach"] = wasmExports2["wasm_train_send_listener_attach"];
       _wasm_train_send_listener_query = Module["_wasm_train_send_listener_query"] = wasmExports2["wasm_train_send_listener_query"];
+      _wasm_train_get_reserved_by_node_id = Module["_wasm_train_get_reserved_by_node_id"] = wasmExports2["wasm_train_get_reserved_by_node_id"];
+      _wasm_train_get_listener_count = Module["_wasm_train_get_listener_count"] = wasmExports2["wasm_train_get_listener_count"];
+      _wasm_train_get_listener_at = Module["_wasm_train_get_listener_at"] = wasmExports2["wasm_train_get_listener_at"];
       _wasm_dcc_encode_event_id = Module["_wasm_dcc_encode_event_id"] = wasmExports2["wasm_dcc_encode_event_id"];
       _wasm_dcc_make_short_address = Module["_wasm_dcc_make_short_address"] = wasmExports2["wasm_dcc_make_short_address"];
       _wasm_dcc_make_consist_address = Module["_wasm_dcc_make_consist_address"] = wasmExports2["wasm_dcc_make_consist_address"];
@@ -1097,14 +1102,27 @@ var OpenLCB = (() => {
   var CONFIG_MEM_STREAM_PHASE_WRITE_SEND_REPLY = 8;
   var CONFIG_MEM_STREAM_PHASE_WRITE_WAIT_STREAM_INITIATE = 6;
   var DATAGRAM = 1;
+  var EVENT_ID_CBUS_OFF_SPACE = 72340168526266368n;
+  var EVENT_ID_CBUS_ON_SPACE = 72340172821233664n;
   var EVENT_ID_CLEAR_EMERGENCY_OFF = 72057594037993470n;
   var EVENT_ID_CLEAR_EMERGENCY_STOP = 72057594037993468n;
+  var EVENT_ID_DCC_ACCESSORY_ACTIVATE = 72341268054605824n;
+  var EVENT_ID_DCC_ACCESSORY_DEACTIVATE = 72341268054540288n;
+  var EVENT_ID_DCC_EXTENDED_ACCESSORY_CMD_SPACE = 72341268054671615n;
+  var EVENT_ID_DCC_SENSOR_FEEDBACK_HIGH = 72341268054343680n;
+  var EVENT_ID_DCC_SENSOR_FEEDBACK_LO = 72341268054278144n;
+  var EVENT_ID_DCC_TURNOUT_FEEDBACK_HIGH = 72341268054474752n;
+  var EVENT_ID_DCC_TURNOUT_FEEDBACK_LOW = 72341268054409216n;
   var EVENT_ID_DUPLICATE_NODE_DETECTED = 72339069014639105n;
   var EVENT_ID_EMERGENCY_OFF = 72057594037993471n;
   var EVENT_ID_EMERGENCY_STOP = 72057594037993469n;
   var EVENT_ID_FIRMWARE_CORRUPTED = 72339069014640129n;
   var EVENT_ID_FIRMWARE_UPGRADE_BY_HARDWARE_SWITCH = 72339069014640130n;
   var EVENT_ID_IDENT_BUTTON_COMBO_PRESSED = 72057594037993216n;
+  var EVENT_ID_LINK_ERROR_CODE_1 = 72057594037993217n;
+  var EVENT_ID_LINK_ERROR_CODE_2 = 72057594037993218n;
+  var EVENT_ID_LINK_ERROR_CODE_3 = 72057594037993219n;
+  var EVENT_ID_LINK_ERROR_CODE_4 = 72057594037993220n;
   var EVENT_ID_NODE_RECORDED_NEW_LOG = 72057594037993464n;
   var EVENT_ID_POWER_SUPPLY_BROWN_OUT_NODE = 72057594037993457n;
   var EVENT_ID_POWER_SUPPLY_BROWN_OUT_STANDARD = 72057594037993456n;
@@ -1217,6 +1235,20 @@ var OpenLCB = (() => {
   var TRAIN_SEARCH_PROTOCOL_MM_V2 = 6;
   var TRAIN_SEARCH_PROTOCOL_MM_V2_EXTENDED = 7;
   var TRAIN_SEARCH_PROTOCOL_OPENLCB_NATIVE = 1;
+  var USER_DEFINED_BASIC_BUFFER_DEPTH = 255;
+  var USER_DEFINED_CONSUMER_COUNT = 256;
+  var USER_DEFINED_CONSUMER_RANGE_COUNT = 32;
+  var USER_DEFINED_DATAGRAM_BUFFER_DEPTH = 64;
+  var USER_DEFINED_MAX_CONCURRENT_ACTIVE_STREAMS = 64;
+  var USER_DEFINED_MAX_LISTENERS_PER_TRAIN = 16;
+  var USER_DEFINED_MAX_TRAIN_FUNCTIONS = 29;
+  var USER_DEFINED_NODE_BUFFER_DEPTH = 255;
+  var USER_DEFINED_PRODUCER_COUNT = 256;
+  var USER_DEFINED_PRODUCER_RANGE_COUNT = 32;
+  var USER_DEFINED_SNIP_BUFFER_DEPTH = 64;
+  var USER_DEFINED_STREAM_BUFFER_DEPTH = 64;
+  var USER_DEFINED_STREAM_BUFFER_LEN = 1024;
+  var USER_DEFINED_TRAIN_NODE_COUNT = 255;
   var WORKER = 4;
   var dcc_detector_address_consist = 2;
   var dcc_detector_address_long = 0;
@@ -1446,13 +1478,47 @@ var OpenLCB = (() => {
     NODE_RECORDED_NEW_LOG: EVENT_ID_NODE_RECORDED_NEW_LOG,
     POWER_BROWN_OUT_NODE: EVENT_ID_POWER_SUPPLY_BROWN_OUT_NODE,
     POWER_BROWN_OUT_STANDARD: EVENT_ID_POWER_SUPPLY_BROWN_OUT_STANDARD,
-    IDENT_BUTTON_COMBO_PRESSED: EVENT_ID_IDENT_BUTTON_COMBO_PRESSED
+    IDENT_BUTTON_COMBO_PRESSED: EVENT_ID_IDENT_BUTTON_COMBO_PRESSED,
+    // Link layer error codes
+    LINK_ERROR_CODE_1: EVENT_ID_LINK_ERROR_CODE_1,
+    LINK_ERROR_CODE_2: EVENT_ID_LINK_ERROR_CODE_2,
+    LINK_ERROR_CODE_3: EVENT_ID_LINK_ERROR_CODE_3,
+    LINK_ERROR_CODE_4: EVENT_ID_LINK_ERROR_CODE_4,
+    // CBUS bridge event spaces (range bases)
+    CBUS_OFF_SPACE: EVENT_ID_CBUS_OFF_SPACE,
+    CBUS_ON_SPACE: EVENT_ID_CBUS_ON_SPACE,
+    // DCC accessory / sensor / turnout / extended event spaces (range bases).
+    // Note the spelling: SENSOR_FEEDBACK_LO matches the C define exactly
+    // (no trailing 'W'), distinct from TURNOUT_FEEDBACK_LOW.
+    DCC_ACCESSORY_ACTIVATE: EVENT_ID_DCC_ACCESSORY_ACTIVATE,
+    DCC_ACCESSORY_DEACTIVATE: EVENT_ID_DCC_ACCESSORY_DEACTIVATE,
+    DCC_TURNOUT_FEEDBACK_HIGH: EVENT_ID_DCC_TURNOUT_FEEDBACK_HIGH,
+    DCC_TURNOUT_FEEDBACK_LOW: EVENT_ID_DCC_TURNOUT_FEEDBACK_LOW,
+    DCC_SENSOR_FEEDBACK_HIGH: EVENT_ID_DCC_SENSOR_FEEDBACK_HIGH,
+    DCC_SENSOR_FEEDBACK_LO: EVENT_ID_DCC_SENSOR_FEEDBACK_LO,
+    DCC_EXTENDED_ACCESSORY_CMD_SPACE: EVENT_ID_DCC_EXTENDED_ACCESSORY_CMD_SPACE
   });
   var Version = Object.freeze({
     C_LIB: OPENLCB_C_LIB_VERSION,
     C_LIB_MAJOR: OPENLCB_C_LIB_VERSION_MAJOR,
     C_LIB_MINOR: OPENLCB_C_LIB_VERSION_MINOR,
     C_LIB_PATCH: OPENLCB_C_LIB_VERSION_PATCH
+  });
+  var Limits = Object.freeze({
+    MAX_NODES: USER_DEFINED_NODE_BUFFER_DEPTH,
+    MAX_PRODUCERS_PER_NODE: USER_DEFINED_PRODUCER_COUNT,
+    MAX_PRODUCER_RANGES_PER_NODE: USER_DEFINED_PRODUCER_RANGE_COUNT,
+    MAX_CONSUMERS_PER_NODE: USER_DEFINED_CONSUMER_COUNT,
+    MAX_CONSUMER_RANGES_PER_NODE: USER_DEFINED_CONSUMER_RANGE_COUNT,
+    MAX_TRAIN_NODES: USER_DEFINED_TRAIN_NODE_COUNT,
+    MAX_LISTENERS_PER_TRAIN: USER_DEFINED_MAX_LISTENERS_PER_TRAIN,
+    MAX_TRAIN_FUNCTIONS: USER_DEFINED_MAX_TRAIN_FUNCTIONS,
+    MAX_CONCURRENT_STREAMS: USER_DEFINED_MAX_CONCURRENT_ACTIVE_STREAMS,
+    STREAM_BUFFER_LEN: USER_DEFINED_STREAM_BUFFER_LEN,
+    BASIC_BUFFER_DEPTH: USER_DEFINED_BASIC_BUFFER_DEPTH,
+    DATAGRAM_BUFFER_DEPTH: USER_DEFINED_DATAGRAM_BUFFER_DEPTH,
+    SNIP_BUFFER_DEPTH: USER_DEFINED_SNIP_BUFFER_DEPTH,
+    STREAM_BUFFER_DEPTH: USER_DEFINED_STREAM_BUFFER_DEPTH
   });
   var EventStatus = event_status_enum;
   var EventRangeCount = event_range_count_enum;
@@ -1486,6 +1552,33 @@ var OpenLCB = (() => {
     addressSpaceTrainFunctionConfigMemory: AddressSpace.TRAIN_FUNCTION_CONFIGURATION_MEMORY,
     addressSpaceFirmware: AddressSpace.FIRMWARE
   });
+  function _stageBytes(api, source, setter, name) {
+    if (source == null) return;
+    const bytes = typeof source === "string" ? new TextEncoder().encode(source) : source;
+    if (!(bytes instanceof Uint8Array)) {
+      throw new InvalidArgumentError(
+        `${name} must be a Uint8Array or string, got ${typeof source}`
+      );
+    }
+    if (bytes.length === 0) return;
+    const ptr = api.malloc(bytes.length);
+    if (!ptr) {
+      throw new InvalidArgumentError(
+        `malloc failed staging ${bytes.length} ${name} bytes`
+      );
+    }
+    try {
+      api.HEAPU8.set(bytes, ptr);
+      const rc = setter(ptr, bytes.length);
+      if (rc !== 0) {
+        throw new InvalidArgumentError(
+          `wasm_node_set_${name} rejected ${bytes.length} bytes (rc=${rc})`
+        );
+      }
+    } finally {
+      api.free(ptr);
+    }
+  }
   function foldProtocolSupport(ps) {
     if (ps === void 0 || ps === null) return 0n;
     if (Array.isArray(ps)) {
@@ -1499,13 +1592,23 @@ var OpenLCB = (() => {
     const p = params ?? {};
     api.builderReset();
     const snip = p.snip ?? {};
+    if (snip.mfgVersion !== void 0 && snip.mfgVersion !== 4) {
+      throw new InvalidArgumentError(
+        `snip.mfgVersion must be 4 (string count fixed by SNIP spec); got ${snip.mfgVersion}`
+      );
+    }
+    if (snip.userVersion !== void 0 && snip.userVersion !== 2) {
+      throw new InvalidArgumentError(
+        `snip.userVersion must be 2 (string count fixed by SNIP spec); got ${snip.userVersion}`
+      );
+    }
     api.setSnip(
-      snip.mfgVersion ?? 1,
+      snip.mfgVersion ?? 4,
       snip.name ?? "",
       snip.model ?? "",
       snip.hardwareVersion ?? "",
       snip.softwareVersion ?? "",
-      snip.userVersion ?? 1
+      snip.userVersion ?? 2
     );
     const ps = foldProtocolSupport(p.protocolSupport);
     api.setProtocolSupport(
@@ -1531,6 +1634,8 @@ var OpenLCB = (() => {
       co.lowestAddressSpace ?? 0,
       co.description ?? ""
     );
+    _stageBytes(api, p.cdi, api.setCdi, "cdi");
+    _stageBytes(api, p.fdi, api.setFdi, "fdi");
     for (const [key, spaceId] of Object.entries(ADDRESS_SPACE_KEYS)) {
       const spec = p[key];
       if (!spec) continue;
@@ -1564,12 +1669,12 @@ var OpenLCB = (() => {
     const p = params ?? {};
     return Object.freeze({
       snip: Object.freeze({
-        mfgVersion: p.snip?.mfgVersion ?? 1,
+        mfgVersion: p.snip?.mfgVersion ?? 4,
         name: p.snip?.name ?? "",
         model: p.snip?.model ?? "",
         hardwareVersion: p.snip?.hardwareVersion ?? "",
         softwareVersion: p.snip?.softwareVersion ?? "",
-        userVersion: p.snip?.userVersion ?? 1
+        userVersion: p.snip?.userVersion ?? 2
       }),
       protocolSupport: foldProtocolSupport(p.protocolSupport),
       producerCountAutocreate: p.producerCountAutocreate ?? 0,
@@ -1725,6 +1830,78 @@ var OpenLCB = (() => {
     getSpeedSteps() {
       this._checkIsTrain();
       return this._api.tGetSteps(this._node.id);
+    }
+    /**
+     * Configure the heartbeat-monitor deadline.  Per TrainControlS §6.6, the
+     * train fires Heartbeat Request to its assigned controller; if the
+     * controller does not reply within the deadline, the train behaves as
+     * if the controller sent Set Speed 0 (preserving direction) and forwards
+     * that to all registered listeners.  Pass 0 to disable.
+     *
+     * @param {number} seconds  Reply deadline in seconds; 0 to disable.
+     */
+    setHeartbeatTimeout(seconds) {
+      this._checkIsTrain();
+      _throwIfError(
+        this._api.tSetHeartbeat(this._node.id, seconds >>> 0),
+        "train.setHeartbeatTimeout"
+      );
+    }
+    getHeartbeatTimeout() {
+      this._checkIsTrain();
+      return this._api.tGetHeartbeat(this._node.id);
+    }
+    /**
+     * Returns the Node ID currently holding this train's reservation, or 0n
+     * if no reservation is held.  Per TrainControlS §6.x a train may be
+     * reserved by a single controller via the Train Control Management
+     * Reserve sub-command; this getter exposes that state to application UI.
+     *
+     * @return {bigint} Reserving controller's Node ID, or 0n if unreserved.
+     */
+    getReservedByNodeId() {
+      this._checkIsTrain();
+      return this._api.tGetReserved(this._node.id);
+    }
+    /**
+     * Returns the count of listeners currently attached to this train.
+     * Listeners are attached/detached by remote throttles via the Listener
+     * Configuration sub-commands (TrainControlS §6.5); this getter lets local
+     * application code surface the consist roster without round-tripping a
+     * Listener Query message on the wire.
+     *
+     * @return {number} Listener count (0 to USER_DEFINED_MAX_LISTENERS_PER_TRAIN).
+     */
+    getListenerCount() {
+      this._checkIsTrain();
+      const n = this._api.tGetListenerCount(this._node.id);
+      return n < 0 ? 0 : n;
+    }
+    /**
+     * Reads one entry from this train's listener list.  Index zero through
+     * (getListenerCount() - 1) returns entries in attach order.  Returns
+     * null when the index is out of range.
+     *
+     * @param {number} index  Zero-based listener slot.
+     * @return {{nodeId: bigint, flags: number} | null}
+     */
+    getListenerAt(index) {
+      this._checkIsTrain();
+      const buf = this._api.malloc(9);
+      if (!buf) return null;
+      try {
+        const rc = this._api.tGetListenerAt(this._node.id, index >>> 0, buf);
+        if (rc !== 0) return null;
+        const heap = this._api.HEAPU8;
+        let nodeId = 0n;
+        for (let i = 7; i >= 0; i--) {
+          nodeId = nodeId << 8n | BigInt(heap[buf + i]);
+        }
+        const flags = heap[buf + 8];
+        return { nodeId, flags };
+      } finally {
+        this._api.free(buf);
+      }
     }
   };
   var BroadcastTimeFacade = class {
@@ -2012,6 +2189,9 @@ var OpenLCB = (() => {
       onTrainControllerQueryReply: (nid, fl, cur) => dispatch(nid, "onTrainControllerQueryReply", fl, BigInt(cur)),
       onTrainControllerChangedNotifyReply: (nid, res) => dispatch(nid, "onTrainControllerChangedNotifyReply", res),
       onTrainReserveReply: (nid, res) => dispatch(nid, "onTrainReserveReply", res),
+      onTrainListenerAttachReply: (nid, lid, res) => dispatch(nid, "onTrainListenerAttachReply", BigInt(lid), res),
+      onTrainListenerDetachReply: (nid, lid, res) => dispatch(nid, "onTrainListenerDetachReply", BigInt(lid), res),
+      onTrainListenerQueryReply: (nid, count, idx, flags, lid) => dispatch(nid, "onTrainListenerQueryReply", count, idx, flags, BigInt(lid)),
       onTrainSearchMatched: (nid, eid) => dispatch(nid, "onTrainSearchMatched", BigInt(eid)),
       // Train-search no-match (allocate-on-search) — runtime-level because
       // no node exists yet; routes to opts.callbacks.onTrainSearchNoMatch.
@@ -2098,6 +2278,8 @@ var OpenLCB = (() => {
       tIsLong: c("wasm_train_is_long_address", "number", ["bigint"]),
       tSetSteps: c("wasm_train_set_speed_steps", "number", ["bigint", "number"]),
       tGetSteps: c("wasm_train_get_speed_steps", "number", ["bigint"]),
+      tSetHeartbeat: c("wasm_train_set_heartbeat_timeout", "number", ["bigint", "number"]),
+      tGetHeartbeat: c("wasm_train_get_heartbeat_timeout", "number", ["bigint"]),
       // Train — additional throttle senders (added in CLib bindings.c)
       tQueryController: c("wasm_train_send_query_controller", "number", ["bigint", "number", "bigint"]),
       tReserve: c("wasm_train_send_reserve", "number", ["bigint", "number", "bigint"]),
@@ -2107,6 +2289,10 @@ var OpenLCB = (() => {
       tListenerDetach: c("wasm_train_send_listener_detach", "number", ["bigint", "number", "bigint", "bigint"]),
       tListenerQuery: c("wasm_train_send_listener_query", "number", ["bigint", "number", "bigint", "number"]),
       tSendSearchMatch: c("wasm_train_send_search_match", "number", ["bigint", "bigint"]),
+      // Train — read-only state introspection (added for Tranche 1b/1c)
+      tGetReserved: c("wasm_train_get_reserved_by_node_id", "bigint", ["bigint"]),
+      tGetListenerCount: c("wasm_train_get_listener_count", "number", ["bigint"]),
+      tGetListenerAt: c("wasm_train_get_listener_at", "number", ["bigint", "number", "number"]),
       // Broadcast time — lifecycle + send
       btIsConsumer: c("wasm_bt_is_consumer", "number", ["bigint"]),
       btIsProducer: c("wasm_bt_is_producer", "number", ["bigint"]),

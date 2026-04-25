@@ -18,9 +18,16 @@
 // used in normal operation.
 
 import {
-    OpenLcb, WebSocketTransport, PSI, Event,
+    OpenLcb, WebSocketTransport, Event,
     TrainSearchFlag, TrainSearchSpeedSteps, TrainSearchProtocol,
 } from '../../src/index.js';
+import {
+    NODE_ID as CS_DEFAULT_NODE_ID,
+    OpenLcbUserConfig_node_parameters,
+} from './openlcb_user_config_command_station.js';
+import {
+    makeTrainNodeParameters,
+} from './openlcb_user_config_train.js';
 
 // -----------------------------------------------------------------------------
 // UI helpers
@@ -45,10 +52,13 @@ function hexDot(big) {
 // State
 // -----------------------------------------------------------------------------
 
-const CS_ROOT_NAME = 'OpenLCB CS (JS)';
+// Heartbeat deadline in seconds for each allocated virtual train.  Per
+// TrainControlTN §2.6.6 the recommended default is 10 s.  A non-zero
+// value enables Heartbeat Request emission to the assigned controller.
+const HEARTBEAT_TIMEOUT_S = 10;
 
 const state = {
-    baseIdBig: 0x050101010800n,
+    baseIdBig: CS_DEFAULT_NODE_ID,
     addrType: 'short', // short | long | auto
     selectedAddr: null,
     trains: new Map(),       // dccAddr -> trainEntry
@@ -57,6 +67,9 @@ const state = {
     csNode: null,            // CS root node (for global-emergency PCERs)
 };
 
+// Per-train Node ID = <CS base> | <DCC address>.  The factory in
+// train_user_config.js does the same thing keyed off CS_DEFAULT_NODE_ID;
+// here we honor whatever base the operator typed into the form.
 function trainNodeId(addr) {
     return state.baseIdBig | BigInt(addr);
 }
@@ -174,30 +187,22 @@ function allocateTrain({ addr, long, steps, name }) {
     }
 
     const nodeId = trainNodeId(addr);
-    const node = state.openlcb.createNode(nodeId, {
-        // PSI.TRAIN_CONTROL triggers automatic train_state allocation.
-        protocolSupport: [
-            PSI.EVENT_EXCHANGE,
-            PSI.SIMPLE_NODE_INFORMATION,
-            PSI.TRAIN_CONTROL,
-        ],
-        consumerCountAutocreate: 0,
-        producerCountAutocreate: 0,
-        snip: {
-            mfgVersion: 1,
-            name: name || `DCC ${addr}`,
-            model: 'Virtual Train',
-            hardwareVersion: '1.0',
-            softwareVersion: '0.1',
-            userVersion: 1,
-        },
-    }, trainCallbacks());
+    const node = state.openlcb.createNode(
+        nodeId,
+        makeTrainNodeParameters({ addr, long, steps, name }),
+        trainCallbacks(),
+    );
 
     // Configure the train's DCC identity before login completes so
-    // Train-Search replies carry the right values.
+    // Train-Search replies carry the right values.  Heartbeat default of
+    // 10 s matches TrainControlTN §2.6.6 — the train will check that its
+    // assigned controller is still alive at that interval; if the controller
+    // goes silent past the deadline the train interprets the silence as
+    // Set Speed 0 (preserving direction).
     try {
         node.train.setDccAddress(addr, !!long);
         node.train.setSpeedSteps(steps ?? 128);
+        node.train.setHeartbeatTimeout(HEARTBEAT_TIMEOUT_S);
     } catch (e) {
         log('err', `train setup failed: ${e?.message ?? e}`);
     }
@@ -353,19 +358,9 @@ $('btnConnect').addEventListener('click', async () => {
         });
 
         // CS root node — SNIP identity + origin for global PCERs.
-        state.csNode = state.openlcb.createNode(state.baseIdBig, {
-            protocolSupport: [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
-            consumerCountAutocreate: 0,
-            producerCountAutocreate: 0,
-            snip: {
-                mfgVersion: 1,
-                name: CS_ROOT_NAME,
-                model: 'Command Station',
-                hardwareVersion: '1.0',
-                softwareVersion: '0.1',
-                userVersion: 1,
-            },
-        }, {
+        // Parameters live in openlcb_user_config.js (mirror of the
+        // CLib openlcb_user_config.c pattern).
+        state.csNode = state.openlcb.createNode(state.baseIdBig, OpenLcbUserConfig_node_parameters, {
             onLoginComplete: (n) => {
                 log('ok', `CS root node logged in id=${hexDot(n.id)}`);
             },
@@ -475,6 +470,10 @@ $('btnClearLog').addEventListener('click', () => { $('log').innerHTML = ''; });
 // -----------------------------------------------------------------------------
 // Init
 // -----------------------------------------------------------------------------
+
+// Pre-fill the CS Base ID input from openlcb_user_config.js.  The
+// operator can still override it before clicking Connect.
+$('baseId').value = CS_DEFAULT_NODE_ID.toString(16).padStart(12, '0');
 
 setStatus('disconnected');
 renderRoster();

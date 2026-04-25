@@ -101,6 +101,9 @@ export function createHooks(dispatcher) {
         onTrainControllerQueryReply:         (nid, fl,  cur)          => dispatch(nid, 'onTrainControllerQueryReply',  fl,  BigInt(cur)),
         onTrainControllerChangedNotifyReply: (nid, res)               => dispatch(nid, 'onTrainControllerChangedNotifyReply', res),
         onTrainReserveReply:                 (nid, res)               => dispatch(nid, 'onTrainReserveReply', res),
+        onTrainListenerAttachReply:          (nid, lid, res)          => dispatch(nid, 'onTrainListenerAttachReply', BigInt(lid), res),
+        onTrainListenerDetachReply:          (nid, lid, res)          => dispatch(nid, 'onTrainListenerDetachReply', BigInt(lid), res),
+        onTrainListenerQueryReply:           (nid, count, idx, flags, lid) => dispatch(nid, 'onTrainListenerQueryReply', count, idx, flags, BigInt(lid)),
         onTrainSearchMatched:                (nid, eid)               => dispatch(nid, 'onTrainSearchMatched', BigInt(eid)),
         // Train-search no-match (allocate-on-search) — runtime-level because
         // no node exists yet; routes to opts.callbacks.onTrainSearchNoMatch.
@@ -200,6 +203,8 @@ export function createApi(Module) {
         tIsLong:   c('wasm_train_is_long_address', 'number', ['bigint']),
         tSetSteps: c('wasm_train_set_speed_steps', 'number', ['bigint','number']),
         tGetSteps: c('wasm_train_get_speed_steps', 'number', ['bigint']),
+        tSetHeartbeat: c('wasm_train_set_heartbeat_timeout', 'number', ['bigint','number']),
+        tGetHeartbeat: c('wasm_train_get_heartbeat_timeout', 'number', ['bigint']),
 
         // Train — additional throttle senders (added in CLib bindings.c)
         tQueryController:   c('wasm_train_send_query_controller',           'number', ['bigint','number','bigint']),
@@ -210,6 +215,11 @@ export function createApi(Module) {
         tListenerDetach:    c('wasm_train_send_listener_detach',            'number', ['bigint','number','bigint','bigint']),
         tListenerQuery:     c('wasm_train_send_listener_query',             'number', ['bigint','number','bigint','number']),
         tSendSearchMatch:   c('wasm_train_send_search_match',               'number', ['bigint','bigint']),
+
+        // Train — read-only state introspection (added for Tranche 1b/1c)
+        tGetReserved:       c('wasm_train_get_reserved_by_node_id',         'bigint', ['bigint']),
+        tGetListenerCount:  c('wasm_train_get_listener_count',              'number', ['bigint']),
+        tGetListenerAt:     c('wasm_train_get_listener_at',                 'number', ['bigint','number','number']),
 
         // Broadcast time — lifecycle + send
         btIsConsumer:       c('wasm_bt_is_consumer',           'number', ['bigint']),

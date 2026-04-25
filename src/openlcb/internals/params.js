@@ -11,6 +11,11 @@
 //     out the spaces the node actually uses.
 //   - configurationOptions defaults to {} (no flags).
 //   - SNIP defaults to empty strings (WASM clamps to buffer size).
+//   - cdi / fdi accept Uint8Array or string (UTF-8 encoded automatically).
+//     Mirrors the C pattern where node_parameters_t.cdi / .fdi are byte
+//     pointers; in CLib the bytes are baked into a const array at build
+//     time, here they're staged into the C-side scratch via
+//     wasm_node_set_cdi / wasm_node_set_fdi.
 
 import {
     errorForReturnCode,
@@ -44,6 +49,51 @@ const ADDRESS_SPACE_KEYS = Object.freeze({
 });
 
 /**
+ * Encode a CDI / FDI source (Uint8Array | string | null | undefined) and
+ * stage the bytes via the supplied WASM setter (api.setCdi / api.setFdi).
+ *
+ * Empty / absent input is a no-op — matches "no CDI" in the CLib pattern
+ * (parameters->cdi = NULL).  Strings are UTF-8 encoded.  The setter copies
+ * the buffer on the C side, so the JS-allocated heap buffer is freed
+ * immediately after the call.
+ *
+ * @param {object}   api       cwrap bundle (for malloc / free / HEAPU8 / setter)
+ * @param {Uint8Array | string | null | undefined} source
+ * @param {Function} setter    api.setCdi or api.setFdi
+ * @param {string}   name      'cdi' / 'fdi' for error messages
+ */
+function _stageBytes(api, source, setter, name) {
+    if (source == null) return;
+    const bytes = (typeof source === 'string')
+        ? new TextEncoder().encode(source)
+        : source;
+    if (!(bytes instanceof Uint8Array)) {
+        throw new InvalidArgumentError(
+            `${name} must be a Uint8Array or string, got ${typeof source}`,
+        );
+    }
+    if (bytes.length === 0) return;
+
+    const ptr = api.malloc(bytes.length);
+    if (!ptr) {
+        throw new InvalidArgumentError(
+            `malloc failed staging ${bytes.length} ${name} bytes`,
+        );
+    }
+    try {
+        api.HEAPU8.set(bytes, ptr);
+        const rc = setter(ptr, bytes.length);
+        if (rc !== 0) {
+            throw new InvalidArgumentError(
+                `wasm_node_set_${name} rejected ${bytes.length} bytes (rc=${rc})`,
+            );
+        }
+    } finally {
+        api.free(ptr);
+    }
+}
+
+/**
  * Fold an array of PSI values (or a raw bitmask) to a BigInt.
  */
 function foldProtocolSupport(ps) {
@@ -69,15 +119,27 @@ export function buildAndCreateNode(api, id, params) {
 
     api.builderReset();
 
-    // SNIP
+    // SNIP — mfgVersion / userVersion are spec-fixed string counts
+    // (4 manufacturer strings, 2 user strings).  Reject any other value
+    // to prevent silent misalignment of the SNIP byte stream.
     const snip = p.snip ?? {};
+    if (snip.mfgVersion !== undefined && snip.mfgVersion !== 4) {
+        throw new InvalidArgumentError(
+            `snip.mfgVersion must be 4 (string count fixed by SNIP spec); got ${snip.mfgVersion}`,
+        );
+    }
+    if (snip.userVersion !== undefined && snip.userVersion !== 2) {
+        throw new InvalidArgumentError(
+            `snip.userVersion must be 2 (string count fixed by SNIP spec); got ${snip.userVersion}`,
+        );
+    }
     api.setSnip(
-        snip.mfgVersion     ?? 1,
+        snip.mfgVersion     ?? 4,
         snip.name           ?? '',
         snip.model          ?? '',
         snip.hardwareVersion ?? '',
         snip.softwareVersion ?? '',
-        snip.userVersion    ?? 1,
+        snip.userVersion    ?? 2,
     );
 
     // Protocol Support (64-bit)
@@ -109,6 +171,13 @@ export function buildAndCreateNode(api, id, params) {
         co.lowestAddressSpace  ?? 0,
         co.description ?? '',
     );
+
+    // CDI / FDI — stage raw bytes into the C-side scratch so they get
+    // duplicated into node_parameters_t.{cdi,fdi} on commit.  Both keys
+    // accept Uint8Array or string (UTF-8 encoded).  Absent / null / empty
+    // is a no-op — matches "no CDI" in the CLib (params.cdi = NULL).
+    _stageBytes(api, p.cdi, api.setCdi, 'cdi');
+    _stageBytes(api, p.fdi, api.setFdi, 'fdi');
 
     // Address spaces — all absent by default; only call WASM for keys
     // actually present in the parameters object.
@@ -155,12 +224,12 @@ export function resolveParameters(params) {
     const p = params ?? {};
     return Object.freeze({
         snip: Object.freeze({
-            mfgVersion:       p.snip?.mfgVersion      ?? 1,
+            mfgVersion:       p.snip?.mfgVersion      ?? 4,
             name:             p.snip?.name            ?? '',
             model:            p.snip?.model           ?? '',
             hardwareVersion:  p.snip?.hardwareVersion ?? '',
             softwareVersion:  p.snip?.softwareVersion ?? '',
-            userVersion:      p.snip?.userVersion     ?? 1,
+            userVersion:      p.snip?.userVersion     ?? 2,
         }),
         protocolSupport:          foldProtocolSupport(p.protocolSupport),
         producerCountAutocreate:  p.producerCountAutocreate ?? 0,

@@ -168,6 +168,27 @@ export const Event = Object.freeze({
     POWER_BROWN_OUT_NODE:   D.EVENT_ID_POWER_SUPPLY_BROWN_OUT_NODE,
     POWER_BROWN_OUT_STANDARD: D.EVENT_ID_POWER_SUPPLY_BROWN_OUT_STANDARD,
     IDENT_BUTTON_COMBO_PRESSED: D.EVENT_ID_IDENT_BUTTON_COMBO_PRESSED,
+
+    // Link layer error codes
+    LINK_ERROR_CODE_1:      D.EVENT_ID_LINK_ERROR_CODE_1,
+    LINK_ERROR_CODE_2:      D.EVENT_ID_LINK_ERROR_CODE_2,
+    LINK_ERROR_CODE_3:      D.EVENT_ID_LINK_ERROR_CODE_3,
+    LINK_ERROR_CODE_4:      D.EVENT_ID_LINK_ERROR_CODE_4,
+
+    // CBUS bridge event spaces (range bases)
+    CBUS_OFF_SPACE:         D.EVENT_ID_CBUS_OFF_SPACE,
+    CBUS_ON_SPACE:          D.EVENT_ID_CBUS_ON_SPACE,
+
+    // DCC accessory / sensor / turnout / extended event spaces (range bases).
+    // Note the spelling: SENSOR_FEEDBACK_LO matches the C define exactly
+    // (no trailing 'W'), distinct from TURNOUT_FEEDBACK_LOW.
+    DCC_ACCESSORY_ACTIVATE:           D.EVENT_ID_DCC_ACCESSORY_ACTIVATE,
+    DCC_ACCESSORY_DEACTIVATE:         D.EVENT_ID_DCC_ACCESSORY_DEACTIVATE,
+    DCC_TURNOUT_FEEDBACK_HIGH:        D.EVENT_ID_DCC_TURNOUT_FEEDBACK_HIGH,
+    DCC_TURNOUT_FEEDBACK_LOW:         D.EVENT_ID_DCC_TURNOUT_FEEDBACK_LOW,
+    DCC_SENSOR_FEEDBACK_HIGH:         D.EVENT_ID_DCC_SENSOR_FEEDBACK_HIGH,
+    DCC_SENSOR_FEEDBACK_LO:           D.EVENT_ID_DCC_SENSOR_FEEDBACK_LO,
+    DCC_EXTENDED_ACCESSORY_CMD_SPACE: D.EVENT_ID_DCC_EXTENDED_ACCESSORY_CMD_SPACE,
 });
 
 // ---------------------------------------------------------------------------
@@ -178,6 +199,29 @@ export const Version = Object.freeze({
     C_LIB_MAJOR:  D.OPENLCB_C_LIB_VERSION_MAJOR,
     C_LIB_MINOR:  D.OPENLCB_C_LIB_VERSION_MINOR,
     C_LIB_PATCH:  D.OPENLCB_C_LIB_VERSION_PATCH,
+});
+
+// ---------------------------------------------------------------------------
+// Limits — WASM-baked compile-time ceilings.  These come from the C-side
+// USER_DEFINED_* sizing constants in OpenLcbCLib/wasm/openlcb_user_config.h
+// and cannot be changed at runtime.  Use these to discover what the WASM
+// build supports before designing a node that pushes the maxes.
+// ---------------------------------------------------------------------------
+export const Limits = Object.freeze({
+    MAX_NODES:                  D.USER_DEFINED_NODE_BUFFER_DEPTH,
+    MAX_PRODUCERS_PER_NODE:     D.USER_DEFINED_PRODUCER_COUNT,
+    MAX_PRODUCER_RANGES_PER_NODE: D.USER_DEFINED_PRODUCER_RANGE_COUNT,
+    MAX_CONSUMERS_PER_NODE:     D.USER_DEFINED_CONSUMER_COUNT,
+    MAX_CONSUMER_RANGES_PER_NODE: D.USER_DEFINED_CONSUMER_RANGE_COUNT,
+    MAX_TRAIN_NODES:            D.USER_DEFINED_TRAIN_NODE_COUNT,
+    MAX_LISTENERS_PER_TRAIN:    D.USER_DEFINED_MAX_LISTENERS_PER_TRAIN,
+    MAX_TRAIN_FUNCTIONS:        D.USER_DEFINED_MAX_TRAIN_FUNCTIONS,
+    MAX_CONCURRENT_STREAMS:     D.USER_DEFINED_MAX_CONCURRENT_ACTIVE_STREAMS,
+    STREAM_BUFFER_LEN:          D.USER_DEFINED_STREAM_BUFFER_LEN,
+    BASIC_BUFFER_DEPTH:         D.USER_DEFINED_BASIC_BUFFER_DEPTH,
+    DATAGRAM_BUFFER_DEPTH:      D.USER_DEFINED_DATAGRAM_BUFFER_DEPTH,
+    SNIP_BUFFER_DEPTH:          D.USER_DEFINED_SNIP_BUFFER_DEPTH,
+    STREAM_BUFFER_DEPTH:        D.USER_DEFINED_STREAM_BUFFER_DEPTH,
 });
 
 // ---------------------------------------------------------------------------

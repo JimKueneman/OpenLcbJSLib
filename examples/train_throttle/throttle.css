@@ -226,6 +226,24 @@ details.emergency > summary::-webkit-details-marker { display: none; }
 details.emergency[open] > summary { border-bottom: 1px solid var(--line); }
 details.emergency > .content { padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
+/* ---------- debug / test drawer ---------- */
+details.debug {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 0; margin-top: 8px;
+}
+details.debug > summary {
+    padding: 12px 14px; cursor: pointer;
+    color: var(--fg-dim); font-weight: 600; font-size: 0.85rem;
+    list-style: none;
+}
+details.debug > summary::-webkit-details-marker { display: none; }
+details.debug[open] > summary { border-bottom: 1px solid var(--line); }
+details.debug > .content { padding: 12px 14px; }
+.debug-help { color: var(--fg-dim); font-size: 0.8rem; margin: 0 0 10px; line-height: 1.4; }
+#btnTestSilent.test-active {
+    background: var(--danger-2); border-color: var(--danger); color: #fff;
+}
+
 /* ---------- misc ---------- */
 .bar-actions { display: flex; gap: 10px; }
 .bar-actions .btn { flex: 1; }

@@ -20,10 +20,14 @@
 //   * Release on exit and on disconnect (TrainControlS §6.1).
 
 import {
-    OpenLcb, WebSocketTransport, PSI, MTI, Event,
+    OpenLcb, WebSocketTransport, MTI, Event,
     TrainSearchFlag, TrainSearchSpeedSteps, TrainSearchProtocol,
     TransportBusyError,
 } from '../../src/index.js';
+import {
+    NODE_ID,
+    OpenLcbUserConfig_node_parameters,
+} from './openlcb_user_config.js';
 
 // -----------------------------------------------------------------------------
 // UI helpers
@@ -61,8 +65,10 @@ const MPS_PER_MPH = 0.44704;
 const FLOAT16_POSITIVE_ZERO = 0x0000;
 const FLOAT16_NEGATIVE_ZERO = 0x8000;
 
-// Heartbeat response deadline (TrainControlTN §2.6.6): default 3s.
-const HEARTBEAT_DEADLINE_MS = 2800;
+// Safety margin we subtract from the train's stated heartbeat deadline
+// before scheduling our own auto-Noop.  Leaves room for clock skew, GC
+// pauses, and the watchdog's 500 ms polling interval.
+const HEARTBEAT_REPLY_MARGIN_MS = 500;
 
 // -----------------------------------------------------------------------------
 // State
@@ -85,6 +91,10 @@ const state = {
 
     pendingSearchEvent: null,
     searchHits: new Map(),    // dccAddr -> { addr, long, nodeId, alias, status }
+    // Debug/test: when true, transport.send is a no-op.  Simulates the
+    // throttle disappearing from the network.  Toggled by the
+    // Debug / Test → "Go Silent" button.  Reload restores normal behavior.
+    testSilent: false,
     // Train-search Producer Identified replies arrive with only the source
     // alias on CAN (the wire frame carries no NodeID).  We send a Verify
     // Node ID Addressed and wait for the Verified Node ID reply to learn
@@ -163,22 +173,11 @@ $('btnConnect').addEventListener('click', async () => {
             },
         });
 
-        state.throttleNode = state.openlcb.createNode(BigInt('0x' + nodeHex), {
-            // Throttle is an event sender/receiver, NOT a train.  Do NOT add
-            // PSI.TRAIN_CONTROL here — that would auto-setup train_state and
-            // falsely announce the throttle as a train on the bus.
-            protocolSupport: [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
-            consumerCountAutocreate: 0,
-            producerCountAutocreate: 0,
-            snip: {
-                mfgVersion: 1,
-                name: 'OpenLCB Throttle (JS)',
-                model: 'Phone Throttle',
-                hardwareVersion: '1.0',
-                softwareVersion: '0.1',
-                userVersion: 1,
-            },
-        }, {
+        // Throttle parameters live in openlcb_user_config.js — same
+        // pattern as the CLib's openlcb_user_config.c.  Throttle is an
+        // event sender/receiver, NOT a train: protocolSupport here does
+        // NOT include PSI.TRAIN_CONTROL on purpose.
+        state.throttleNode = state.openlcb.createNode(BigInt('0x' + nodeHex), OpenLcbUserConfig_node_parameters, {
             onLoginComplete: (n) => {
                 log(`throttle node login complete id=${hexDot(n.id)}`);
                 setStatus('connected');
@@ -221,16 +220,45 @@ $('btnConnect').addEventListener('click', async () => {
             },
 
             // --- Heartbeat (train → throttle) -------------------------------
+            // The train tells us how many seconds it will wait for any reply
+            // (a user command OR a No-op).  The watchdog at the bottom of this
+            // file polls state.hbRequestDeadline; user actions (sendCurrentSpeed,
+            // sendSetFunction, sendEStop) also implicitly clear the deadline
+            // via pokeAlerter() so we don't waste a Noop frame when the user
+            // is actively driving.
             onTrainHeartbeatRequest: (_node, timeoutSeconds) => {
                 if (!state.train) return;
-                state.hbRequestDeadline = Date.now() + HEARTBEAT_DEADLINE_MS;
+                const windowMs = Math.max(
+                    HEARTBEAT_REPLY_MARGIN_MS,
+                    (timeoutSeconds | 0) * 1000 - HEARTBEAT_REPLY_MARGIN_MS,
+                );
+                state.hbRequestDeadline = Date.now() + windowMs;
                 $('alerter').className = 'alerter warn';
-                log(`heartbeat request (deadline ${timeoutSeconds}s)`);
+                log(`heartbeat request (deadline ${timeoutSeconds}s, replying within ${windowMs}ms)`);
             },
+
+            // No throttle-side onTrainHeartbeatTimeout: the C library's
+            // on_heartbeat_timeout fires on the *train's* node, which lives
+            // in the CS runtime, not the throttle's.  The throttle has no
+            // protocol-level signal that the train timed out — the design
+            // assumption is the throttle replies in time and never finds out
+            // it failed.  Fix A (CLib sends actual remaining time, not full
+            // configured period) makes that assumption hold.
 
             onConfigMemRead:  (_n, _a, c, buf) => { buf.fill(0); return c; },
             onConfigMemWrite: (_n, _a, c)       => c,
         });
+
+        // Test hook — when state.testSilent is true, drop all outgoing
+        // frames at the transport layer.  Simulates the throttle vanishing
+        // from the network (yanked cable / dead radio) so the train sees
+        // controller silence and exercises the §6.6 heartbeat-timeout path.
+        // Inbound continues to flow so the UI keeps reading the bus.
+        const _origSend = state.openlcb._transport.send.bind(state.openlcb._transport);
+        state.openlcb._transport.send = (data) => {
+            if (state.testSilent) return;
+            return _origSend(data);
+        };
 
         await state.openlcb.start();
     } catch (err) {
@@ -679,6 +707,25 @@ $('btnEOffAll').addEventListener('click',       () => sendGlobalEvent(Event.EMER
 $('btnClearEOffAll').addEventListener('click',  () => sendGlobalEvent(Event.CLEAR_EMERGENCY_OFF,  'Clear Emergency Off All'));
 
 // =============================================================================
+// Debug / Test — silence the throttle to exercise the heartbeat-timeout path
+// =============================================================================
+
+$('btnTestSilent').addEventListener('click', () => {
+    state.testSilent = !state.testSilent;
+    const btn = $('btnTestSilent');
+    if (state.testSilent) {
+        btn.textContent = 'TEST: Resume';
+        btn.classList.add('test-active');
+        log('TEST: throttle silenced — all outgoing frames dropped');
+    } else {
+        btn.textContent = 'TEST: Go Silent';
+        btn.classList.remove('test-active');
+        log('TEST: throttle resumed — outgoing frames flowing again ' +
+            '(train state may be stale; bump the slider to resync)');
+    }
+});
+
+// =============================================================================
 // Heartbeat watchdog
 // =============================================================================
 
@@ -718,6 +765,10 @@ function sendNoop() {
 // =============================================================================
 // Init
 // =============================================================================
+
+// Pre-fill the form's Node ID input from openlcb_user_config.js.  The
+// operator can still override it before clicking Connect.
+$('nodeId').value = NODE_ID.toString(16).padStart(12, '0');
 
 updateSpeedReadout();
 renderFunctions();

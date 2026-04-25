@@ -168,6 +168,82 @@ class TrainFacade {
         this._checkIsTrain();
         return this._api.tGetSteps(this._node.id);
     }
+
+    /**
+     * Configure the heartbeat-monitor deadline.  Per TrainControlS §6.6, the
+     * train fires Heartbeat Request to its assigned controller; if the
+     * controller does not reply within the deadline, the train behaves as
+     * if the controller sent Set Speed 0 (preserving direction) and forwards
+     * that to all registered listeners.  Pass 0 to disable.
+     *
+     * @param {number} seconds  Reply deadline in seconds; 0 to disable.
+     */
+    setHeartbeatTimeout(seconds) {
+        this._checkIsTrain();
+        _throwIfError(
+            this._api.tSetHeartbeat(this._node.id, seconds >>> 0),
+            'train.setHeartbeatTimeout',
+        );
+    }
+    getHeartbeatTimeout() {
+        this._checkIsTrain();
+        return this._api.tGetHeartbeat(this._node.id);
+    }
+
+    /**
+     * Returns the Node ID currently holding this train's reservation, or 0n
+     * if no reservation is held.  Per TrainControlS §6.x a train may be
+     * reserved by a single controller via the Train Control Management
+     * Reserve sub-command; this getter exposes that state to application UI.
+     *
+     * @return {bigint} Reserving controller's Node ID, or 0n if unreserved.
+     */
+    getReservedByNodeId() {
+        this._checkIsTrain();
+        return this._api.tGetReserved(this._node.id);
+    }
+
+    /**
+     * Returns the count of listeners currently attached to this train.
+     * Listeners are attached/detached by remote throttles via the Listener
+     * Configuration sub-commands (TrainControlS §6.5); this getter lets local
+     * application code surface the consist roster without round-tripping a
+     * Listener Query message on the wire.
+     *
+     * @return {number} Listener count (0 to USER_DEFINED_MAX_LISTENERS_PER_TRAIN).
+     */
+    getListenerCount() {
+        this._checkIsTrain();
+        const n = this._api.tGetListenerCount(this._node.id);
+        return n < 0 ? 0 : n;
+    }
+
+    /**
+     * Reads one entry from this train's listener list.  Index zero through
+     * (getListenerCount() - 1) returns entries in attach order.  Returns
+     * null when the index is out of range.
+     *
+     * @param {number} index  Zero-based listener slot.
+     * @return {{nodeId: bigint, flags: number} | null}
+     */
+    getListenerAt(index) {
+        this._checkIsTrain();
+        const buf = this._api.malloc(9);
+        if (!buf) return null;
+        try {
+            const rc = this._api.tGetListenerAt(this._node.id, index >>> 0, buf);
+            if (rc !== 0) return null;
+            const heap = this._api.HEAPU8;
+            let nodeId = 0n;
+            for (let i = 7; i >= 0; i--) {
+                nodeId = (nodeId << 8n) | BigInt(heap[buf + i]);
+            }
+            const flags = heap[buf + 8];
+            return { nodeId, flags };
+        } finally {
+            this._api.free(buf);
+        }
+    }
 }
 
 class BroadcastTimeFacade {

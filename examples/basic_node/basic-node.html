@@ -33,7 +33,7 @@ console to see the full protocol trace.</p>
     </div>
     <div class="row">
         <label for="nodeId">Node ID (hex)</label>
-        <input id="nodeId" type="text" value="050101010700">
+        <input id="nodeId" type="text" value="">
     </div>
     <div class="row">
         <label for="consumerCount">Consumer count</label>
@@ -72,11 +72,19 @@ console to see the full protocol trace.</p>
 -->
 <script type="module">
 import {
-    OpenLcb, WebSocketTransport, PSI,
+    OpenLcb, WebSocketTransport,
     TransportBusyError,
 } from '../../src/index.js';
+import {
+    NODE_ID,
+    OpenLcbUserConfig_node_parameters,
+} from './openlcb_user_config.js';
 
 const $ = (id) => document.getElementById(id);
+
+// Pre-fill the form's Node ID input from the config-file default.  The user
+// can still override it before clicking Connect.
+$('nodeId').value = NODE_ID.toString(16).padStart(12, '0');
 const log = (msg) => {
     const t = new Date().toISOString().slice(11, 23);
     const el = $('log');
@@ -124,19 +132,12 @@ $('connect').addEventListener('click', async () => {
             },
         });
 
+        // Spread the openlcb_user_config.js parameters; let the form
+        // override the consumer/producer auto-create counts.
         node = openlcb.createNode(nodeId, {
-            // Minimum parameters — Event Exchange + SNIP only.
-            protocolSupport:          [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
-            consumerCountAutocreate:  consumerCount,
-            producerCountAutocreate:  producerCount,
-            snip: {
-                mfgVersion: 1,
-                name: 'OpenLcbJSLib',
-                model: 'Basic Node',
-                hardwareVersion: '1.0',
-                softwareVersion: '0.1',
-                userVersion: 1,
-            },
+            ...OpenLcbUserConfig_node_parameters,
+            consumerCountAutocreate: consumerCount,
+            producerCountAutocreate: producerCount,
         }, {
             onLoginComplete: (n) => {
                 log(`node ${n.id.toString(16)} login complete`);
