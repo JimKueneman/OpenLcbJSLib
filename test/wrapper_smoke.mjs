@@ -114,7 +114,7 @@ const node = openlcb.createNode(0x050101010707n, {
         model: 'WrapperSmoke',
         hardwareVersion: 'hw0.1',
         softwareVersion: 'sw0.1',
-        userVersion: 1,
+        userVersion: 2,
     },
 }, {
     onLoginComplete: () => { loginCbFired = true; },
@@ -160,6 +160,36 @@ const newFrames = transport.sent.slice(beforeSend);
 assert.ok(newFrames.some((f) => /:X195B4.*0101000000000042/.test(f)),
     `expected PCER frame, got: ${newFrames.join(', ')}`);
 ok('node.sendPcer emitted a PCER frame');
+
+// Allocate a second node with CDI bytes to exercise the params.js
+// .cdi staging path (wasm_node_set_cdi).  Two flavors: Uint8Array
+// directly, and a string that the wrapper UTF-8 encodes for us.
+const cdiBytes = new TextEncoder().encode(
+    '<?xml version="1.0"?><cdi><identification><manufacturer>X</manufacturer></identification></cdi>',
+);
+const nodeWithCdi = openlcb.createNode(0x050101010708n, {
+    protocolSupport: [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
+    snip: { mfgVersion: 4, name: 'CdiTest', model: 'BytesPath',
+            hardwareVersion: '0.1', softwareVersion: '0.1', userVersion: 2 },
+    addressSpaceConfigurationDefinitionInfo: {
+        present: true, readOnly: true, highestAddress: cdiBytes.length - 1,
+    },
+    cdi: cdiBytes,
+}, { onLoginComplete: () => {} });
+assert.equal(nodeWithCdi.id, 0x050101010708n);
+ok('createNode with cdi:Uint8Array succeeded');
+
+const nodeWithCdiStr = openlcb.createNode(0x050101010709n, {
+    protocolSupport: [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
+    snip: { mfgVersion: 4, name: 'CdiTest', model: 'StringPath',
+            hardwareVersion: '0.1', softwareVersion: '0.1', userVersion: 2 },
+    addressSpaceConfigurationDefinitionInfo: {
+        present: true, readOnly: true, highestAddress: 100,
+    },
+    cdi: '<?xml version="1.0"?><cdi><identification/></cdi>',
+}, { onLoginComplete: () => {} });
+assert.equal(nodeWithCdiStr.id, 0x050101010709n);
+ok('createNode with cdi:string succeeded');
 
 // Stop.
 await openlcb.stop();

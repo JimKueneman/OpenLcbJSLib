@@ -9,10 +9,11 @@
 #   1. Locate OpenLcbCLib            (env OPENLCBCLIB_PATH or ../OpenLcbCLib)
 #   2. Build WASM                    (OpenLcbCLib/wasm/build.sh)
 #   3. Copy artifacts into wasm/     (openlcb-core.{wasm,mjs}, openlcb-defines.mjs)
-#   4. Write wasm/VERSION            (commit, date, emcc version, sha256s)
-#   5. Coverage audit                (tools/audit-wasm-coverage.mjs — fails on any gap)
-#   6. Test suite                    (wasm_smoke + wrapper_smoke + integration + conformance)
-#   7. Build bundles                 (npm run build — dist/ and example bundles)
+#   4. Sync node_wizard tool         (rsync OpenLcbCLib/tools/node_wizard/ -> tools/node_wizard/, inject banner)
+#   5. Write wasm/VERSION            (commit, date, emcc version, sha256s)
+#   6. Coverage audit                (tools/audit-wasm-coverage.mjs — fails on any gap)
+#   7. Test suite                    (wasm_smoke + wrapper_smoke + integration + conformance)
+#   8. Build bundles                 (npm run build — dist/ and example bundles)
 #
 # Not automated (human judgment required):
 #   - Version bump in package.json
@@ -23,12 +24,13 @@
 # Hard-fails on missing external tools (emcc, node, npm, git).
 #
 # Usage:
-#   ./wasm_update_wizard.sh                  # full run
-#   ./wasm_update_wizard.sh --skip-build     # use existing OpenLcbCLib/wasm/dist
-#   ./wasm_update_wizard.sh --skip-audit     # skip coverage audit
-#   ./wasm_update_wizard.sh --skip-tests     # skip test suite
-#   ./wasm_update_wizard.sh --skip-bundles   # skip bundle rebuild
-#   ./wasm_update_wizard.sh -v               # verbose
+#   ./wasm_update_wizard.sh                       # full run
+#   ./wasm_update_wizard.sh --skip-build          # use existing OpenLcbCLib/wasm/dist
+#   ./wasm_update_wizard.sh --skip-wizard-sync    # skip node_wizard tool sync
+#   ./wasm_update_wizard.sh --skip-audit          # skip coverage audit
+#   ./wasm_update_wizard.sh --skip-tests          # skip test suite
+#   ./wasm_update_wizard.sh --skip-bundles        # skip bundle rebuild
+#   ./wasm_update_wizard.sh -v                    # verbose
 #
 # Env:
 #   OPENLCBCLIB_PATH   Override path to the sibling OpenLcbCLib checkout.
@@ -39,6 +41,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 SKIP_BUILD=0
+SKIP_WIZARD_SYNC=0
 SKIP_AUDIT=0
 SKIP_TESTS=0
 SKIP_BUNDLES=0
@@ -46,13 +49,14 @@ VERBOSE=0
 
 for arg in "$@"; do
     case "$arg" in
-        --skip-build)   SKIP_BUILD=1 ;;
-        --skip-audit)   SKIP_AUDIT=1 ;;
-        --skip-tests)   SKIP_TESTS=1 ;;
-        --skip-bundles) SKIP_BUNDLES=1 ;;
-        -v|--verbose)   VERBOSE=1 ;;
+        --skip-build)        SKIP_BUILD=1 ;;
+        --skip-wizard-sync)  SKIP_WIZARD_SYNC=1 ;;
+        --skip-audit)        SKIP_AUDIT=1 ;;
+        --skip-tests)        SKIP_TESTS=1 ;;
+        --skip-bundles)      SKIP_BUNDLES=1 ;;
+        -v|--verbose)        VERBOSE=1 ;;
         -h|--help)
-            sed -n '3,31p' "$0"
+            sed -n '3,33p' "$0"
             exit 0
             ;;
         *)
@@ -100,7 +104,7 @@ require_tool() {
 # ----------------------------------------------------------------------------
 # 1. Locate OpenLcbCLib
 # ----------------------------------------------------------------------------
-section "1/7  Locate OpenLcbCLib"
+section "1/8  Locate OpenLcbCLib"
 
 CLIB_PATH="${OPENLCBCLIB_PATH:-${REPO_ROOT}/../OpenLcbCLib}"
 
@@ -144,7 +148,7 @@ ok "Source located"
 # 2. Build WASM
 # ----------------------------------------------------------------------------
 if [ "$SKIP_BUILD" -eq 0 ]; then
-    section "2/7  Build WASM"
+    section "2/8  Build WASM"
 
     require_tool emcc
 
@@ -171,7 +175,7 @@ done
 # ----------------------------------------------------------------------------
 # 3. Copy artifacts
 # ----------------------------------------------------------------------------
-section "3/7  Copy artifacts"
+section "3/8  Copy artifacts"
 
 WASM_DIR="${REPO_ROOT}/wasm"
 mkdir -p "${WASM_DIR}"
@@ -184,9 +188,81 @@ done
 ok "Artifacts copied to ${WASM_DIR}"
 
 # ----------------------------------------------------------------------------
-# 4. Write VERSION
+# 4. Sync node_wizard tool from OpenLcbCLib
 # ----------------------------------------------------------------------------
-section "4/7  Write VERSION"
+if [ "$SKIP_WIZARD_SYNC" -eq 0 ]; then
+    section "4/8  Sync node_wizard tool"
+
+    require_tool rsync
+
+    WIZARD_SRC="${CLIB_PATH}/tools/node_wizard"
+    WIZARD_DST="${REPO_ROOT}/tools/node_wizard"
+
+    [ -d "${WIZARD_SRC}" ] || fail "Wizard source not found: ${WIZARD_SRC}"
+
+    # Mirror the wizard tree.  --delete keeps the copy honest (removed-upstream
+    # files vanish here too).  Excludes:
+    #   .DS_Store      — macOS clutter
+    #   test/golden/   — operator-generated comparison artifacts, repo-local
+    rsync -a --delete \
+        --exclude '.DS_Store' \
+        --exclude 'test/golden/' \
+        "${WIZARD_SRC}/" "${WIZARD_DST}/"
+
+    # Inject the runtime banner into the destination node_wizard.html.
+    # The source HTML has a <!-- BANNER_INJECTION_POINT --> marker that gets
+    # replaced with a visible "this is a synced copy" warning <div>.  Done
+    # via node so the banner can contain any characters without shell escaping.
+    BANNER_FILE="$(mktemp)"
+    cat > "${BANNER_FILE}" <<'EOF'
+<div style="background:#fef3c7; border-bottom:2px solid #f59e0b; color:#78350f; padding:8px 16px; font-family:sans-serif; font-size:13px; text-align:center; font-weight:600;">
+This is a synced copy from <code>OpenLcbCLib/tools/node_wizard/</code>. Edits here will be overwritten on the next sync — make changes in the OpenLcbCLib repo and re-run <code>tools/wasm_update_wizard/wasm_update_wizard.sh</code>.
+</div>
+EOF
+
+    node -e "
+const fs = require('fs');
+const banner = fs.readFileSync('${BANNER_FILE}', 'utf8').trimEnd();
+const path   = '${WIZARD_DST}/node_wizard.html';
+const html   = fs.readFileSync(path, 'utf8');
+const out    = html.replace('<!-- BANNER_INJECTION_POINT -->', banner);
+if (out === html) {
+    process.stderr.write('marker <!-- BANNER_INJECTION_POINT --> not found in ' + path + '\\n');
+    process.exit(1);
+}
+fs.writeFileSync(path, out);
+" || fail "banner injection failed"
+    rm -f "${BANNER_FILE}"
+
+    # Write DO_NOT_EDIT.md so anyone browsing the directory sees the warning.
+    cat > "${WIZARD_DST}/DO_NOT_EDIT.md" <<'EOF'
+# DO NOT EDIT FILES IN THIS DIRECTORY
+
+This directory is a **synced copy** of `OpenLcbCLib/tools/node_wizard/`.
+
+Source of truth lives in the OpenLcbCLib repo at `tools/node_wizard/`.
+
+Any edits made here will be **overwritten** on the next sync.  To change the
+wizard:
+
+1. Edit the files in OpenLcbCLib's `tools/node_wizard/`
+2. From this repo's root, run:
+   `./tools/wasm_update_wizard/wasm_update_wizard.sh`
+3. The sync step copies the latest version here
+
+A runtime banner at the top of `node_wizard.html` makes the same warning
+visible when the wizard is opened in a browser.
+EOF
+
+    ok "Wizard synced to ${WIZARD_DST}"
+else
+    echo "${C_YELLOW}Skipping wizard sync (--skip-wizard-sync)${C_RESET}"
+fi
+
+# ----------------------------------------------------------------------------
+# 5. Write VERSION
+# ----------------------------------------------------------------------------
+section "5/8  Write VERSION"
 
 EMCC_VERSION="$(emcc --version 2>/dev/null | head -n1 || echo 'unknown')"
 
@@ -217,10 +293,10 @@ EOF
 ok "VERSION written"
 
 # ----------------------------------------------------------------------------
-# 5. Coverage audit
+# 6. Coverage audit
 # ----------------------------------------------------------------------------
 if [ "$SKIP_AUDIT" -eq 0 ]; then
-    section "5/7  Coverage audit"
+    section "6/8  Coverage audit"
 
     AUDIT_LOG="/tmp/wasm_update_wizard_audit.log"
     (
@@ -247,10 +323,10 @@ else
 fi
 
 # ----------------------------------------------------------------------------
-# 6. Test suite
+# 7. Test suite
 # ----------------------------------------------------------------------------
 if [ "$SKIP_TESTS" -eq 0 ]; then
-    section "6/7  Test suite"
+    section "7/8  Test suite"
 
     require_tool npm
 
@@ -284,10 +360,10 @@ else
 fi
 
 # ----------------------------------------------------------------------------
-# 7. Build bundles
+# 8. Build bundles
 # ----------------------------------------------------------------------------
 if [ "$SKIP_BUNDLES" -eq 0 ]; then
-    section "7/7  Build bundles"
+    section "8/8  Build bundles"
 
     require_tool npm
 
