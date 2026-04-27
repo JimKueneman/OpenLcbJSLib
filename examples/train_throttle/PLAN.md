@@ -1,8 +1,17 @@
 # Train Throttle Example — Plan
 
-> **Banner:** API references in this doc reflect the pre-rewrite legacy
-> pure-JS stack. Use as design intent only; the new WASM-based API will be
-> redesigned in Phase 2 and this doc updated to match.
+> **Banner — historical design doc.** API references in the body of
+> this file (`config.applicationTrain.*`, `defines.PSI_*`, etc.) reflect
+> the pre-WASM legacy stack and DO NOT match shipped code. The throttle
+> has since shipped against the new WASM wrapper API — see
+> [throttle.html](throttle.html) / [throttle.js](throttle.js) for the
+> current source of truth, and
+> [../../documentation/train_protocol_gap_analysis.md](../../documentation/train_protocol_gap_analysis.md)
+> for what is and isn't yet covered. Files now shipped:
+> `throttle.{html,js,css}`, `cdi_throttle.xml`, `register_events.js`,
+> `throttle_project.json`, `openlcb_user_config.js`, `openlcb.bundle.js`,
+> `GETTING_STARTED.txt`. The design intent (protocol flow, scope) below
+> is still useful as background.
 
 Mobile-first throttle webpage for OpenLCB, standalone (no shared JS with
 `basic_node`), talking to a GridConnect WebSocket hub. Follows
@@ -12,9 +21,17 @@ Mobile-first throttle webpage for OpenLCB, standalone (no shared JS with
 
 ## Status
 
+The original line items below were tracked against the legacy pure-JS
+stack. The throttle has since been re-implemented against the WASM
+wrapper API and is described as functional;
+[../../documentation/train_protocol_gap_analysis.md](../../documentation/train_protocol_gap_analysis.md)
+is the current authoritative status of train-protocol coverage.
+
 - [x] UI mockup (`throttle.html`) with fake data, no library wiring.
-- [ ] Library wiring (search → assign → drive → release).
-- [ ] Heartbeat response.
+- [x] Library wiring (search → assign → drive → release) — uses the
+      runtime-level `onTrainSearchReply` callback (replaces the legacy
+      `onProducerIdentifiedSet` route referenced in the body of this doc).
+- [ ] Heartbeat response. *(see gap analysis for current coverage)*
 - [ ] Layout-wide emergency PCERs + inbound emergency display.
 - [ ] FDI (0xFA) XML download for per-train function labels. *(deferred v2)*
 - [ ] Consisting (listener attach/detach). *(deferred v2)*
@@ -149,8 +166,8 @@ Default 126 mph. Expose a settings dialog later; for v1 it's hardcoded.
 
 - `throttle.html` — single-page UI. Currently pure mockup with fake data.
   Will import `openlcb.bundle.js` once wiring starts.
-- `openlcb.bundle.js` — to be copied from `dist/` (same pattern as
-  `examples/basic_node`). Not yet present.
+- `openlcb.bundle.js` — copy of `dist/openlcb.bundle.js` (same pattern
+  as `examples/basic_node/`). Present and committed.
 
 ---
 

@@ -21,6 +21,7 @@ import {
     OpenLcb, WebSocketTransport, Event,
     TrainSearchFlag, TrainSearchSpeedSteps, TrainSearchProtocol,
 } from '../../src/index.js';
+import { LocalStorageConfigMemory } from '../../src/storage/localstorage-config-memory.js';
 import {
     NODE_ID as CS_DEFAULT_NODE_ID,
     OpenLcbUserConfig_node_parameters,
@@ -28,6 +29,14 @@ import {
 import {
     makeTrainNodeParameters,
 } from './openlcb_user_config_train.js';
+
+// Persist Configuration Memory across reloads.  One LocalStore-backed adapter
+// serves the CS root node and every virtual train node — entries are keyed
+// by NodeID so they don't collide.  Size derives from the CS root node's
+// declared 0xFD address space.
+const cfgMem = new LocalStorageConfigMemory({
+    size: OpenLcbUserConfig_node_parameters.addressSpaceConfigMemory.highestAddress + 1,
+});
 
 // -----------------------------------------------------------------------------
 // UI helpers
@@ -171,8 +180,10 @@ function trainCallbacks() {
             trackDriver.eStop(e);
             renderRoster();
         },
-        onConfigMemRead:  (_n, _a, c, buf) => { buf.fill(0); return c; },
-        onConfigMemWrite: (_n, _a, c)       => c,
+        // Each virtual train gets its own NodeID-keyed config-memory blob
+        // in localStorage, isolated from the CS root and from other trains.
+        onConfigMemRead:  cfgMem.read.bind(cfgMem),
+        onConfigMemWrite: cfgMem.write.bind(cfgMem),
     };
 }
 
@@ -364,8 +375,23 @@ $('btnConnect').addEventListener('click', async () => {
             onLoginComplete: (n) => {
                 log('ok', `CS root node logged in id=${hexDot(n.id)}`);
             },
-            onConfigMemRead:  (_n, _a, c, buf) => { buf.fill(0); return c; },
-            onConfigMemWrite: (_n, _a, c)       => c,
+            // Configuration Memory persists in localStorage, keyed by NodeID.
+            // ACDI User name/description (offsets 0..126 of space 0xFD) and
+            // every CDI-defined byte ride this same path.
+            onConfigMemRead:  cfgMem.read.bind(cfgMem),
+            onConfigMemWrite: cfgMem.write.bind(cfgMem),
+
+            // Memory Configuration ops — fired by the WASM bridge after the
+            // library has already sent the datagram-OK reply.  Per spec:
+            //   §4.23 Update Complete (0xA8): notify only, reset optional
+            //   §4.24 Reset/Reboot   (0xA9): SHALL reboot to power-on state
+            //   §4.25 Factory Reset  (0xAA): restore config to defaults
+            onUpdateComplete: (n) => log('ok', `config update complete on ${hexDot(n.id)}`),
+            onReboot:         (n) => { log('ok', `reset/reboot received for ${hexDot(n.id)}`); softReboot(); },
+            onFactoryReset:   (n) => {
+                log('ok', `factory reset received for ${hexDot(n.id)} — clearing storage`);
+                cfgMem.clear(n.id);
+            },
         });
 
         await state.openlcb.start();
@@ -377,6 +403,21 @@ $('btnConnect').addEventListener('click', async () => {
         setStatus('disconnected');
     }
 });
+
+// Soft reboot — discards the WASM module and re-instantiates a fresh stack,
+// keeping the WebSocket open.  Triggered from the Reset/Reboot Memory Config
+// op on the CS root node.  Every node handle (CS root + every virtual train)
+// survives across the reboot and re-runs login.
+async function softReboot() {
+    if (!state.openlcb) return;
+    try {
+        await state.openlcb.reboot();
+        // onLoginComplete fires for each node on the existing transport.
+    } catch (e) {
+        log('err', `reboot failed: ${e?.message ?? e}`);
+        setStatus('disconnected');
+    }
+}
 
 $('btnDisconnect').addEventListener('click', async () => {
     if (state.openlcb) {

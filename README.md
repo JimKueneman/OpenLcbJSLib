@@ -1,56 +1,71 @@
 # OpenLcbJSLib
 
-An [OpenLCB](https://openlcb.org/) (LCC) client library for the browser.
-Speaks GridConnect over a WebSocket transport, compatible with JMRI's
-WebSocket hub, OpenLCB software hubs, and hardware gateways.
+An [OpenLCB](https://openlcb.org/) (LCC) client library for the browser and
+Node, built as a thin JavaScript wrapper around a WebAssembly build of
+[OpenLcbCLib](https://github.com/openlcb/OpenLcbCLib). Speaks GridConnect
+over a WebSocket transport, compatible with JMRI's LCC WebSocket Hub,
+OpenLCB software hubs, and hardware gateways.
 
-Author nodes, consume/produce events, and interact with the layout directly
-from JavaScript — no build tooling required for the common cases.
+Author nodes, consume/produce events, drive trains, and exchange Broadcast
+Time directly from JavaScript — no build tooling required for the common
+cases.
 
 ## Quick start (no tools required)
 
-1. Copy `dist/openlcb.bundle.js` into your project folder.
-2. In your HTML:
+1. Copy `dist/openlcb.bundle.js` into your project folder (or use the copy
+   already in `examples/basic_node/`).
+2. In your HTML, import the library as an ES module and create a runtime:
 
     ```html
-    <script src="openlcb.bundle.js"></script>
-    <script>
-        const { OpenLcbConfig, defines } = OpenLCB;
+    <script type="module">
+    import {
+        OpenLcb, WebSocketTransport, PSI,
+    } from './openlcb.bundle.js';
 
-        const config = new OpenLcbConfig({
-            websocketUrl: 'ws://localhost:12022/',
-            callbacks: {
-                onTransportConnect: () => console.log('connected'),
-                onLoginComplete:    (node) => {
-                    console.log('alias', node.alias.toString(16));
-                    return true;
-                },
-            },
-            configMemoryRead:  (_n, _a, count, buf) => { buf.fill(0); return count; },
-            configMemoryWrite: (_n, _a, count) => count,
-        });
+    const openlcb = await OpenLcb.create({
+        transport: new WebSocketTransport({ url: 'ws://localhost:12080/lcc/hub/' }),
+        callbacks: {
+            onTransportConnect:    () => console.log('connected'),
+            onTransportDisconnect: () => console.log('disconnected'),
+        },
+    });
 
-        const node = config.createNode(BigInt('0x050101010700'), {
-            protocolSupport: defines.PSI_EVENT_EXCHANGE,
-            /* …other params… */
-        });
+    const node = openlcb.createNode(0x050101010700n, {
+        protocolSupport: [PSI.EVENT_EXCHANGE, PSI.SIMPLE_NODE_INFORMATION],
+        // ...other parameters (SNIP, address spaces, ...)
+    }, {
+        onLoginComplete: (n) => console.log('alias', n.id.toString(16)),
+    });
 
-        config.start();
+    await openlcb.start();
+    await node.loginComplete;
+
+    node.sendPcer(0x0101000000000201n);
     </script>
     ```
 
-3. Double-click the HTML. That's it — no server, no bundler.
+3. Serve the folder over HTTP (e.g. `python3 -m http.server 8766`) and
+   open the page in a browser. ES-module imports require an HTTP origin.
 
-See [`examples/basic_node/`](examples/basic_node/) for a complete runnable example.
+See [`examples/basic_node/`](examples/basic_node/) for a complete runnable
+example, including WASM bootstrap, persistent Configuration Memory in
+`localStorage`, and Memory Configuration `Reset/Reboot` and `Factory Reset`
+handling. See [`examples/train_throttle/`](examples/train_throttle/) and
+[`examples/train_command_station/`](examples/train_command_station/) for
+Train Control protocol use.
 
 ## Using as an ES module
 
-If you're building a larger app with your own bundler (Vite, esbuild, webpack, …)
-you can import directly from source:
+If you're building a larger app with your own bundler (Vite, esbuild,
+webpack, ...) you can import directly from source:
 
 ```js
-import { OpenLcbConfig, defines } from 'openlcb-js-lib';
+import { OpenLcb, WebSocketTransport, PSI } from 'openlcb-js-lib';
 ```
+
+The package's `main` / `exports` point at `src/index.js`. The bundler will
+pick up `wasm/openlcb-core.mjs` and `wasm/openlcb-core.wasm` automatically;
+make sure both ride along into your output.
 
 ## Developing on the library itself
 
@@ -61,26 +76,29 @@ npm install          # installs esbuild, activates git hooks
 npm run build        # rebuild dist/ and examples/*/openlcb.bundle.js
 npm run build:minify # also emit minified variants
 npm run build:debug  # with sourcemaps
-npm run conformance  # run the conformance test harness
+node test/wasm_smoke.mjs     # WASM-layer sanity check
+node test/wrapper_smoke.mjs  # JS-wrapper sanity check
 ```
 
-A pre-commit hook at `.githooks/pre-commit` automatically rebuilds the bundle
-whenever you commit a change under `src/`, so the committed bundle never drifts
-from the source.
+A pre-commit hook at `.githooks/pre-commit` automatically rebuilds the
+bundle whenever you commit a change under `src/`, so the committed bundle
+never drifts from the source.
 
 ## Project layout
 
 ```
-src/               Library source (ES modules, authored here)
-dist/              Built bundle (regenerated by `npm run build`)
+src/               JS wrapper (ES modules — runtime, node, transports, storage)
+wasm/              Prebuilt OpenLcbCLib WebAssembly module (.mjs + .wasm)
+dist/              Built browser bundle (regenerated by `npm run build`)
 examples/          Sample HTML apps that use the library
-tools/             Build scripts
-test/              Conformance and unit tests
-documentation/     Protocol notes and design docs
+tools/             Build scripts and developer utilities
+test/              Smoke tests
+documentation/     API design notes, style guides, protocol gap analysis
 ```
 
 ## Compatibility with JMRI
 
 This library talks to JMRI's **LCC WebSocket Hub** (Start via
-*LCC menu → Start WebSocket Hub*) on the default port `12022`. GridConnect
-ASCII is used as the wire format — one CAN frame per WebSocket text frame.
+*LCC menu → Start LCC Hub Server*). The examples default to the JMRI WebSocket
+URL `ws://localhost:12080/lcc/hub/`. GridConnect ASCII is used as the wire
+format — one CAN frame per WebSocket text frame.

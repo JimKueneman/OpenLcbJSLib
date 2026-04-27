@@ -1,3 +1,7 @@
+> **HISTORICAL — archived.** This is the migration plan that drove the move from a pure-JS port to the current WASM-wrapper architecture. The migration has been executed; the sketches of `src/wrapper/`, `src/transport/`, and `src/wasm/` here do not match the shipped layout. Kept for context only. For the current public API see [../api_design.md](../api_design.md) and the root [README.md](../../README.md).
+
+---
+
 # OpenLcbJSLib — WASM Wrapper Migration Plan
 
 ## Goal

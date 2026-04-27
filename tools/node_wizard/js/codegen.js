@@ -149,6 +149,15 @@ var DEFAULT_FDI_BYTES = _xmlToBytes(DEFAULT_FDI_XML);
 
 /* ---------- Internal helpers ---------- */
 
+/* Derive a C identifier for the CDI/FDI byte-array constant from the user's
+ * output filename.  Mirror of CTarget._filenameToVarname — kept local here
+ * because generateC is a top-level function (not inside the CTarget IIFE).
+ *   cdi.xml             -> _cdi_data
+ *   cdi_my_throttle.xml -> _cdi_my_throttle_data */
+function _filenameToVarname(filename) {
+    return '_' + (filename || '').replace(/\.xml$/i, '').replace(/[^a-zA-Z0-9_]/g, '_') + '_data';
+}
+
 function _escC(str) {
 
     return (str || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
@@ -731,6 +740,13 @@ function generateC(s) {
     var cdiHighest = (s.cdiLength > 0) ? (s.cdiLength - 1) : 0;
     var fdiHighest = (s.fdiLength > 0) ? (s.fdiLength - 1) : 0;
 
+    /* Resolve output names — defaults preserve the historical _cdi_data /
+     * _fdi_data identifiers when the wizard fields are blank. */
+    var cdiOutputName = (s.cdiOutputName && s.cdiOutputName.trim()) || 'cdi.xml';
+    var fdiOutputName = (s.fdiOutputName && s.fdiOutputName.trim()) || 'fdi.xml';
+    var cdiVarName    = _filenameToVarname(cdiOutputName);
+    var fdiVarName    = _filenameToVarname(fdiOutputName);
+
     var L = [];
 
     /* ---- File header ---- */
@@ -757,12 +773,12 @@ function generateC(s) {
     L.push('');
     /* ---- standalone CDI/FDI byte arrays (before the struct so sizeof works) ---- */
     if (s.cdiBytes && s.cdiBytes.length > 1) {
-        L.push('static const uint8_t _cdi_data[] =');
+        L.push('static const uint8_t ' + cdiVarName + '[] =');
         L.push('    ' + _byteArrayStr(s.cdiBytes, s.cdiXml || s.cdiUserXml, !!s.preserveWhitespace, '        ') + ';');
         L.push('');
     }
     if (isTrainNode && s.fdiBytes && s.fdiBytes.length > 1) {
-        L.push('static const uint8_t _fdi_data[] =');
+        L.push('static const uint8_t ' + fdiVarName + '[] =');
         L.push('    ' + _byteArrayStr(s.fdiBytes, s.fdiXml || s.fdiUserXml, !!s.preserveWhitespace, '        ') + ';');
         L.push('');
     }
@@ -974,7 +990,7 @@ function generateC(s) {
     if (isBootloader) {
         L.push('    .address_space_configuration_definition.highest_address = 0,  // not present in bootloader');
     } else if (s.cdiBytes && s.cdiBytes.length > 1) {
-        L.push('    .address_space_configuration_definition.highest_address = sizeof(_cdi_data) - 1,  // auto-computed from CDI byte array');
+        L.push('    .address_space_configuration_definition.highest_address = sizeof(' + cdiVarName + ') - 1,  // auto-computed from CDI byte array');
     } else {
         L.push('    .address_space_configuration_definition.highest_address = 0,');
     }
@@ -1045,7 +1061,7 @@ function generateC(s) {
     L.push('    .address_space_train_function_definition_info.low_address_valid = false,  // assume the low address starts at 0');
     L.push('    .address_space_train_function_definition_info.address_space = CONFIG_MEM_SPACE_TRAIN_FUNCTION_DEFINITION_INFO,');
     if (isTrainNode && s.fdiBytes && s.fdiBytes.length > 1) {
-        L.push('    .address_space_train_function_definition_info.highest_address = sizeof(_fdi_data) - 1,  // auto-computed from FDI byte array');
+        L.push('    .address_space_train_function_definition_info.highest_address = sizeof(' + fdiVarName + ') - 1,  // auto-computed from FDI byte array');
     } else {
         L.push('    .address_space_train_function_definition_info.highest_address = 0,');
     }
@@ -1077,7 +1093,7 @@ function generateC(s) {
 
     /* ---- 14. .cdi ---- */
     if (s.cdiBytes && s.cdiBytes.length > 1) {
-        L.push('    .cdi = _cdi_data,');
+        L.push('    .cdi = ' + cdiVarName + ',');
     } else {
         L.push('    .cdi = NULL,  // no CDI');
     }
@@ -1086,7 +1102,7 @@ function generateC(s) {
 
     /* ---- 15. .fdi ---- */
     if (isTrainNode && s.fdiBytes && s.fdiBytes.length > 1) {
-        L.push('    .fdi = _fdi_data,');
+        L.push('    .fdi = ' + fdiVarName + ',');
     } else {
         L.push('    .fdi = NULL,  // no FDI');
     }
@@ -1437,13 +1453,15 @@ function generateMain(s) {
 
     }
 
-    /* User-selected well known producers */
-    if (wke.producers.length > 0) {
+    /* User-selected well known producers — minus 'train' (handled above by
+     * node-type so it can't duplicate or leak across node types). */
+    var userProducers = wke.producers.filter(function (id) { return id !== 'train'; });
+    if (userProducers.length > 0) {
 
         if (prodCount > 0) { L.push(''); }
         L.push('    // Well Known Event producers (selected in Node Wizard)');
 
-        wke.producers.forEach(function (id) {
+        userProducers.forEach(function (id) {
             var evt = _wkeMap[id];
             if (!evt) { return; }
             if (evt.range) {
@@ -1452,10 +1470,11 @@ function generateMain(s) {
                 L.push('    OpenLcbApplication_register_producer_eventid(openlcb_node, ' + evt.define + ', EVENT_STATUS_UNKNOWN);');
             }
         });
+        prodCount += userProducers.length;
 
     }
 
-    if (prodCount === 0 && wke.producers.length === 0) {
+    if (prodCount === 0) {
 
         L.push('    // TODO: Register application-specific produced events');
         L.push('    // OpenLcbApplication_register_producer_eventid(openlcb_node, your_event_id, EVENT_STATUS_UNKNOWN);');
@@ -1472,7 +1491,10 @@ function generateMain(s) {
 
     var consCount = 0;
 
-    /* Node-type defaults */
+    /* Node-type defaults.  Train: register the four global emergency
+     * consumers.  IS_TRAIN consumer is NOT registered here — it's driven
+     * by the user's WKE consumer checkbox (auto-checked by the wizard as
+     * a hint when Train Controller is selected). */
     if (s.nodeType === 'train') {
 
         L.push('    // Train node consumes global emergency events');
@@ -1500,7 +1522,9 @@ function generateMain(s) {
 
     }
 
-    /* User-selected well known consumers */
+    /* User-selected well known consumers — 'train' is allowed through
+     * (consumer is driven by the wizard's WKE checkbox, unlike the producer
+     * side which is locked to the Train node type). */
     if (wke.consumers.length > 0) {
 
         if (consCount > 0) { L.push(''); }
@@ -1515,10 +1539,11 @@ function generateMain(s) {
                 L.push('    OpenLcbApplication_register_consumer_eventid(openlcb_node, ' + evt.define + ', EVENT_STATUS_UNKNOWN);');
             }
         });
+        consCount += wke.consumers.length;
 
     }
 
-    if (consCount === 0 && wke.consumers.length === 0) {
+    if (consCount === 0) {
 
         L.push('    // TODO: Register application-specific consumed events');
         L.push('    // OpenLcbApplication_register_consumer_eventid(openlcb_node, your_event_id, EVENT_STATUS_UNKNOWN);');

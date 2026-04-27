@@ -211,6 +211,10 @@ export class OpenLcb {
             onConfigMemWrite: (nid, addr, count, ptr) => self._onConfigMemWrite(nid, addr, count, ptr),
         };
 
+        // Save dispatcher so reboot() can re-register the same hooks on a
+        // fresh Module instance without rebuilding the closure.
+        self._dispatcher = dispatcher;
+
         let Module;
         try {
             Module = await OpenLcbCoreFactory(createHooks(dispatcher));
@@ -308,6 +312,60 @@ export class OpenLcb {
         this._running = false;
         this._stopPump();
         await Promise.resolve(this._transport.disconnect());
+    }
+
+    /**
+     * Soft-reboot the OpenLCB stack: discard the WASM module, instantiate
+     * a fresh one, and replay every previously-created node onto it.  The
+     * transport is NOT touched — the existing connection (e.g. WebSocket
+     * to JMRI) stays open across the reboot.  Node handle objects survive;
+     * each one's loginComplete promise is replaced so callers can `await`
+     * the post-reboot login.
+     *
+     * Use this from `onReboot` / `onFactoryReset` callbacks to honor a
+     * Memory Configuration Reset/Reboot or Factory Reset datagram with
+     * spec-correct "fresh node, same medium" semantics.
+     */
+    async reboot() {
+        if (!this._dispatcher) throw new Error('reboot() before create() resolved');
+
+        // Halt the pump but leave the transport alone.
+        this._stopPump();
+
+        // Snapshot existing node specs so we can replay them on the new module.
+        const specs = [];
+        for (const node of this._nodes.values()) {
+            specs.push({ node, params: node.parameters, callbacks: node._callbacks });
+        }
+
+        // Drop refs so GC can reclaim the WASM heap.
+        this._Module = null;
+        this._api = null;
+
+        // Bring up a fresh Module instance with the same dispatcher.
+        let Module;
+        try {
+            Module = await OpenLcbCoreFactory(createHooks(this._dispatcher));
+        } catch (e) {
+            throw new WasmLoadError('WASM factory failed during reboot', { cause: e });
+        }
+        this._Module = Module;
+        this._api = createApi(Module);
+        this._api.initialize();
+
+        // Refresh codec namespaces — they wrap the new api/Module.
+        Object.assign(this, buildCodecNamespaces(this._api, Module));
+
+        // Re-materialize each node on the new WASM, reusing the same
+        // OpenLcbNode handle objects so the application's references stay valid.
+        for (const { node, params, callbacks } of specs) {
+            node._resetForReboot();
+            this._materializeNode(node.id, params, callbacks);
+            node._bindApi(this._api);
+        }
+
+        // Resume the pump if the transport is still up.
+        this._startPump();
     }
 
     // ------------------------------------------------------------------------

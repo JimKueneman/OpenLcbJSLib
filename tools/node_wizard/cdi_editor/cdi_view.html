@@ -994,6 +994,9 @@ chkPreserveWs.addEventListener('change', function () {
     /* Re-post XML so byte counts update */
     _postXmlToParent();
 
+    /* Array view's bytes depend on the toggle — re-render if active. */
+    if (_mapView === 'array') { _renderMapArray(); }
+
 });
 
 /* ---------- State --------------------------------------------------------- */
@@ -1130,6 +1133,16 @@ const TYPE_COLOURS = {
 
 let _mapView = 'flat';
 let _targetLanguage = 'c';   /* gates Array view formatting; set by parent */
+let _outputName     = 'cdi.xml';   /* user-entered filename; set by parent */
+
+/* Derive the byte-array constant name from a filename — same algorithm
+ * as CTarget._filenameToVarname / JsTarget._filenameToVarname so the
+ * editor preview matches the eventual ZIP output:
+ *   cdi.xml             -> _cdi_data
+ *   cdi_my_throttle.xml -> _cdi_my_throttle_data */
+function _filenameToVarname(filename) {
+    return '_' + (filename || '').replace(/\.xml$/i, '').replace(/[^a-zA-Z0-9_]/g, '_') + '_data';
+}
 
 const MAP_TOGGLE_BTNS = ['btn-map-flat', 'btn-map-tree', 'btn-map-defines', 'btn-map-struct', 'btn-map-array', 'btn-map-preview'];
 
@@ -1824,11 +1837,14 @@ function _renderMapStruct(mapData) {
 /* --- Array view (language-neutral byte rows + target-specific formatter) - */
 
 /**
- * Convert raw XML text into one byte-row per source line, preserving the
- * original line as a comment.  Skips lines that are blank/whitespace-only.
- * Strips non-printable characters (CDI bytes are ASCII per spec).
+ * Convert raw XML text into one byte-row per source line.  Skips
+ * blank-only lines.  Strips non-printable characters (CDI bytes are ASCII
+ * per spec).  When `preserveWhitespace` is true: keeps each line's leading
+ * whitespace AND appends a 0x0A newline byte after every line — matching
+ * what the codegen would emit in preserve mode.  Default (false): trims
+ * each line and emits no newline bytes between lines.
  */
-function _xmlToByteRows(xmlRawText) {
+function _xmlToByteRows(xmlRawText, preserveWhitespace) {
 
     function isPrintable(ch) {
         const code = ch.charCodeAt(0);
@@ -1840,32 +1856,36 @@ function _xmlToByteRows(xmlRawText) {
 
     rawLines.forEach(function (originalLine) {
 
-        const forSkip = originalLine
-            .replace(/[^\x20-\x7E]/g, '')
-            .replace(/\s+/g, '');
-        if (forSkip.length === 0) { return; }
+        if (originalLine.trim().length === 0) { return; }
 
-        let firstIdx = -1;
-        let lastIdx  = -1;
+        let bytes;
+        let comment;
 
-        for (let i = 0; i < originalLine.length; i++) {
-            const ch = originalLine[i];
-            if (isPrintable(ch) && !/\s/.test(ch)) { firstIdx = i; break; }
+        if (preserveWhitespace) {
+
+            /* Keep every printable byte in the original line (including
+             * leading/trailing whitespace bytes), then a 0x0A newline so the
+             * line boundary is preserved in the byte stream. */
+            bytes = [];
+            for (let i = 0; i < originalLine.length; i++) {
+                const ch = originalLine[i];
+                if (isPrintable(ch)) { bytes.push(ch.charCodeAt(0)); }
+            }
+            bytes.push(0x0A);
+            comment = originalLine;
+
+        } else {
+
+            const trimmed = originalLine.replace(/^\s+|\s+$/g, '');
+            bytes = [];
+            for (let i = 0; i < trimmed.length; i++) {
+                const ch = trimmed[i];
+                if (isPrintable(ch)) { bytes.push(ch.charCodeAt(0)); }
+            }
+            comment = trimmed;
+
         }
-        for (let i = originalLine.length - 1; i >= 0; i--) {
-            const ch = originalLine[i];
-            if (isPrintable(ch) && !/\s/.test(ch)) { lastIdx = i; break; }
-        }
-        if (firstIdx === -1 || lastIdx === -1 || firstIdx > lastIdx) { return; }
 
-        const bytes = [];
-        for (let i = firstIdx; i <= lastIdx; i++) {
-            const ch = originalLine[i];
-            if (!isPrintable(ch)) { continue; }
-            bytes.push(ch.charCodeAt(0));
-        }
-
-        const comment = originalLine.slice(firstIdx, lastIdx + 1).replace(/^\s+|\s+$/g, '');
         rows.push({ bytes: bytes, comment: comment });
 
     });
@@ -1884,8 +1904,10 @@ function _renderMapArray() {
 
     /* Convert XML to byte rows once (language-neutral), then hand to the
      * active LanguageTarget for formatting.  New languages plug in by
-     * implementing renderByteArray() — no editor changes needed. */
-    const rows = _xmlToByteRows(xmlRawText);
+     * implementing renderByteArray() — no editor changes needed.
+     * Honors the Preserve Whitespace toggle so the rendered bytes match
+     * what the codegen will emit. */
+    const rows = _xmlToByteRows(xmlRawText, chkPreserveWs.checked);
 
     /* Trailing NUL terminator — required by the CDI spec for tools that
      * read the byte stream as a C string. */
@@ -1901,7 +1923,7 @@ function _renderMapArray() {
         return;
     }
 
-    const rendered   = target.renderByteArray(rows, 'cdi');
+    const rendered   = target.renderByteArray(rows, 'cdi', { varName: _filenameToVarname(_outputName) });
     const text       = rendered.text;
     const totalChars = rendered.totalBytes;
 
@@ -2540,6 +2562,13 @@ if (_isEmbedded) {
             if (_mapView === 'array') {
                 _renderMapArray();
             }
+
+        } else if (e.data.type === 'setOutputName') {
+
+            /* User edited the CDI filename in Node Config; update the
+             * derived varname shown in the Array view. */
+            _outputName = e.data.filename || 'cdi.xml';
+            if (_mapView === 'array') { _renderMapArray(); }
 
         }
 

@@ -8,7 +8,6 @@
         ".": "./src/index.js"
     },
     "scripts": {
-        "conformance": "node test/harness/run-conformance.mjs",
         "build": "node tools/build-bundles.mjs",
         "build:minify": "node tools/build-bundles.mjs --minify",
         "build:debug": "node tools/build-bundles.mjs --sourcemap",

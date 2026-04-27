@@ -38,12 +38,17 @@
  *           'file-preview'.  Tiles for views NOT in this list are hidden.
  * @property {function(Object): TargetEntry[]} buildFiles
  * @property {function(Object): string} projectLabel
- * @property {function(ByteRow[], string): ByteArrayResult} [renderByteArray]
+ * @property {function(ByteRow[], string, Object=): ByteArrayResult} [renderByteArray]
  *           — used by the CDI/FDI editors' "Array" view.  Takes pre-converted
- *           byte rows (each row carries a comment with the originating XML line)
- *           plus a `kind` string ('cdi' or 'fdi') and returns the language-
- *           specific copy/pasteable byte-array literal.  New languages plug in
- *           a new implementation here without the editors needing to change.
+ *           byte rows (each row carries a comment with the originating XML line),
+ *           a `kind` string ('cdi' or 'fdi'), and an optional `options` object
+ *           with target-specific knobs.  Recognised options:
+ *             { varName: 'string' }  — name of the byte-array constant to emit
+ *                                       in the rendered text.  When absent,
+ *                                       targets fall back to '_<kind>_data'.
+ *           Returns the language-specific copy/pasteable byte-array literal.
+ *           New languages plug in a new implementation here without the editors
+ *           needing to change.
  * ========================================================================= */
 
 var LanguageTargets = (function () {

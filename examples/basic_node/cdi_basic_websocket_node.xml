@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/4/cdi.xsd">
+  <identification>
+    <manufacturer>Mustangpeak</manufacturer>
+    <model>Basic WebSocket Node</model>
+    <hardwareVersion>0.1</hardwareVersion>
+    <softwareVersion>0.1</softwareVersion>
+  </identification>
+  <acdi/>
+  <segment space="253" origin="0">
+    <name>User Identification</name>
+    <group>
+      <name>User Identification</name>
+      <description>User-assigned name and description for this node</description>
+      <string size="62">
+        <name>Node Name</name>
+        <description>Short user-assigned name (max 62 characters)</description>
+      </string>
+      <string size="63">
+        <name>Node Description</name>
+        <description>Longer description of this node (max 63 characters)</description>
+      </string>
+    </group>
+  </segment>
+  <segment space="253" origin="128">
+    <name>Configuration</name>
+    <group>
+      <name>Configuration</name>
+      <description>Node configuration settings</description>
+    </group>
+  </segment>
+</cdi>

@@ -1,8 +1,12 @@
 # Basic Node Example — Plan
 
-> **Banner:** API references in this doc reflect the pre-rewrite legacy
-> pure-JS stack. Use as design intent only; the new WASM-based API will be
-> redesigned in Phase 2 and this doc updated to match.
+> **Banner — historical design doc.** API references in the body of this
+> file reflect the pre-WASM legacy pure-JS stack. The example has since
+> shipped against the new `OpenLcb.create()` / `node.sendPcer()` API; see
+> [basic-node.html](basic-node.html) for the current source of truth.
+> The CDI file referenced below as `cdi.xml` is now
+> [cdi_basic_websocket_node.xml](cdi_basic_websocket_node.xml). The
+> design intent (scope, what it demonstrates, UX) is still accurate.
 
 Smallest-possible working OpenLCB node in a browser. One virtual node, Event
 Exchange + SNIP only, connected to a GridConnect WebSocket hub. Intended as
@@ -14,7 +18,9 @@ the "hello world" reference for the library API.
 
 - [x] UI scaffold (Connect form, event sender, log).
 - [x] Working against the legacy pure-JS stack.
-- [ ] Port to the WASM wrapper API (pending clean-slate rewrite).
+- [x] Port to the WASM wrapper API — shipped; uses `OpenLcb.create()`,
+  per-node `loginComplete` Promise, `LocalStorageConfigMemory`, and
+  `openlcb.reboot()` for Memory Configuration Reset/Reboot.
 
 ---
 

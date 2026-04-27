@@ -52,6 +52,27 @@ var CTarget = (function () {
     'use strict';
 
     /* ----------------------------------------------------------------------- */
+    /* Output-name helpers (CDI/FDI filename + derived array variable name)    */
+    /* ----------------------------------------------------------------------- */
+
+    /* Resolve user-entered filename (or default).  Pure trim — no validation
+     * beyond emptiness; user gets what they type. */
+    function _resolveOutputName(custom, defaultName) {
+        var name = (custom || '').trim();
+        return name || defaultName;
+    }
+
+    /* Derive the C identifier for the byte-array constant from the filename.
+     * Strips trailing .xml (case-insensitive), replaces any non-identifier
+     * char with _, prepends _ and appends _data.  Defaults so:
+     *   cdi.xml             -> _cdi_data
+     *   cdi_my_throttle.xml -> _cdi_my_throttle_data
+     *   foo bar.xml         -> _foo_bar_data */
+    function _filenameToVarname(filename) {
+        return '_' + filename.replace(/\.xml$/i, '').replace(/[^a-zA-Z0-9_]/g, '_') + '_data';
+    }
+
+    /* ----------------------------------------------------------------------- */
     /* Include path fixup helpers                                               */
     /* ----------------------------------------------------------------------- */
 
@@ -469,12 +490,15 @@ var CTarget = (function () {
 
             entries.push({ path: basePrefix + 'xml_files', dir: true });
 
+            var cdiName = _resolveOutputName(codegenState.cdiOutputName, 'cdi.xml');
+            var fdiName = _resolveOutputName(codegenState.fdiOutputName, 'fdi.xml');
+
             if (wizardState.cdiUserXml && wizardState.cdiUserXml.trim()) {
-                entries.push({ path: basePrefix + 'xml_files/cdi.xml', content: wizardState.cdiUserXml });
+                entries.push({ path: basePrefix + 'xml_files/' + cdiName, content: wizardState.cdiUserXml });
             }
 
             if (wizardState.fdiUserXml && wizardState.fdiUserXml.trim()) {
-                entries.push({ path: basePrefix + 'xml_files/fdi.xml', content: wizardState.fdiUserXml });
+                entries.push({ path: basePrefix + 'xml_files/' + fdiName, content: wizardState.fdiUserXml });
             }
 
         }

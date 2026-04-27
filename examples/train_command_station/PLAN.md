@@ -1,8 +1,20 @@
 # Train Command Station Example — Plan
 
-> **Banner:** API references in this doc reflect the pre-rewrite legacy
-> pure-JS stack. Use as design intent only; the new WASM-based API will be
-> redesigned in Phase 2 and this doc updated to match.
+> **Banner — historical design doc.** API references in the body of
+> this file (`config.applicationTrain.*`, `config.application.*`, the
+> `defines.PSI_*` constants, etc.) reflect the pre-WASM legacy stack
+> and DO NOT match shipped code. The command station has since shipped
+> against the new WASM wrapper API — see
+> [command-station.html](command-station.html) /
+> [command-station.js](command-station.js) for the current source of
+> truth, and the gap-analysis at
+> [../../documentation/train_protocol_gap_analysis.md](../../documentation/train_protocol_gap_analysis.md)
+> for what is and isn't yet covered. Files now shipped:
+> `command-station.{html,js,css}`, `cdi_command_station.xml`,
+> `cdi_train.xml`, `fdi_train.xml`,
+> `openlcb_user_config_command_station.js`,
+> `openlcb_user_config_train.js`. The design intent (architecture,
+> scope, deferred items) below is still useful as background.
 
 Browser-based DCC command station proxy that pairs with the Train Throttle
 example (`examples/train_throttle/`). Acts as a gateway: represents each
@@ -281,19 +293,34 @@ padding.
 
 - `command-station.html` — single-page UI + wiring. To be created.
 - `openlcb.bundle.js` — copy of `dist/openlcb.bundle.js` (same pattern as
-  `examples/basic_node/`). Not yet present.
+  `examples/basic_node/`). Present and committed.
 - `PLAN.md` — this file.
+
+Files actually shipped (in addition to the planned set above): `command-station.css`,
+`cdi_command_station.xml`, `cdi_train.xml`, `fdi_train.xml`.
 
 ---
 
 ## Status
 
-- [ ] UI scaffold (Connect / Roster / Add / Log / Global Emergency).
-- [ ] CS base-node allocation + login (optional).
-- [ ] `Add train` form (debug only) → `createNode` + `applicationTrain.setup`.
-- [ ] `onTrainSearchNoMatch` wired to dynamic allocation.
+The original line items below were tracked against the legacy pure-JS
+stack. The command station has since been re-implemented against the
+WASM wrapper API and is described as functional. The shipped surface
+covers UI scaffold, dynamic train-node allocation via
+`onTrainSearchNoMatch`, set-speed / set-function forwarding, and
+emergency stop. Treat the bullets below as a v1-design checklist;
+[../../documentation/train_protocol_gap_analysis.md](../../documentation/train_protocol_gap_analysis.md)
+is the current authoritative status of train-protocol coverage in the
+library and examples.
+
+- [x] UI scaffold (Connect / Roster / Add / Log / Global Emergency).
+- [x] CS base-node allocation + login (optional).
+- [x] `Add train` form (debug only) → `createNode` with
+      `protocolSupport: [..., PSI.TRAIN_CONTROL]` (replaces the legacy
+      `applicationTrain.setup` call referenced in the body of this doc).
+- [x] `onTrainSearchNoMatch` wired to dynamic allocation.
 - [ ] `onTrainSpeedChanged` / `onTrainFunctionChanged` / emergency →
-      mock track driver.
+      mock track driver. *(see gap analysis for current coverage)*
 - [ ] Heartbeat configuration + `onTrainHeartbeatTimeout` surface in UI.
 - [ ] Global emergency originate / display.
 - [ ] Persistence of roster across reloads. *(deferred v2)*

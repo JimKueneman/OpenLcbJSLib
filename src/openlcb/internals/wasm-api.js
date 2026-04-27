@@ -135,6 +135,13 @@ export function createHooks(dispatcher) {
         // Config memory — runtime delegates to per-node callback
         onConfigMemRead:  (nid, addr, count, ptr) => dispatcher.onConfigMemRead(nid, addr, count, ptr),
         onConfigMemWrite: (nid, addr, count, ptr) => dispatcher.onConfigMemWrite(nid, addr, count, ptr),
+
+        // Memory-config operations — notification-only; library has already
+        // sent the datagram-OK reply by the time these fire.  The application
+        // owns the action (clear storage, soft-reboot, refresh from disk).
+        onReboot:         (nid) => dispatch(nid, 'onReboot'),
+        onFactoryReset:   (nid) => dispatch(nid, 'onFactoryReset'),
+        onUpdateComplete: (nid) => dispatch(nid, 'onUpdateComplete'),
     };
 }
 

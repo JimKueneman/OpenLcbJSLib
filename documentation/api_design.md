@@ -291,7 +291,6 @@ class Transport {
 Shipped:
 - `WebSocketTransport` — browser + Node (via `ws` package for the
   latter, pluggable via `WebSocketImpl` option).
-- `TcpGridConnectTransport` — Node only, for the conformance harness.
 
 Reconnect logic lives inside the transport, not the runtime. Consumers
 who need different reconnect policy either configure the transport or
@@ -299,7 +298,7 @@ subclass / write their own.
 
 ```js
 const transport = new WebSocketTransport({
-    url: 'ws://localhost:12022/',
+    url: 'ws://localhost:12080/lcc/hub/',   // JMRI default WebSocket hub path
     autoReconnect: true,
     WebSocketImpl: globalThis.WebSocket,
 });
@@ -312,47 +311,55 @@ const transport = new WebSocketTransport({
 ```
 src/
   index.js                   // public entry — single source of exports
-  openlcb/                   // (renamed from wrapper/)
-    runtime.js               // OpenLcb class
-    node.js                  // OpenLcbNode class
-    errors.js                // typed error classes
-    constants.js             // groups wasm/openlcb-defines.mjs into PSI/MTI/etc.
+  openlcb/
+    runtime.js               // OpenLcb class + codec namespaces
+    node.js                  // OpenLcbNode class + TrainFacade / BroadcastTimeFacade
+    errors.js                // typed error classes + errorForReturnCode()
+    constants.js             // PSI / MTI / enums (generated from OpenLcbCLib)
     internals/
-      wasm-bootstrap.js      // async WASM factory + cwrap wiring
-      callbacks.js           // Module.onX → per-node callback routing
-      params.js              // createNode() parameter defaults + validation
+      wasm-api.js            // cwrap signatures (createApi) + onX hooks (createHooks)
+      params.js              // createNode() parameter resolution + builder commit
   drivers/
-    websocket/transport.js
-    tcp/transport.js         // (new — Node-only)
+    websocket/transport.js   // WebSocketTransport
   storage/
-    localstorage-config-memory.js
-    file-config-memory.js
+    localstorage-config-memory.js  // browser, localStorage-backed
+    local-store.js                 // browser, in-memory key/value helper
+    file-config-memory.js          // Node-only, fs-backed (NOT re-exported from index.js)
 wasm/
   openlcb-core.{wasm,mjs}    // from OpenLcbCLib build
-  openlcb-defines.mjs
   VERSION
 ```
 
 `src/index.js` — single place consumers import from:
 
 ```js
-export { OpenLcb } from './openlcb/runtime.js';
+export { OpenLcb }     from './openlcb/runtime.js';
+export { OpenLcbNode } from './openlcb/node.js';
 export {
-    OpenLcbError, UnknownNodeError, InvalidArgumentError,
-    PoolFullError, TransportBusyError, NotInitializedError,
-    ProtocolNotSupportedError,
+    OpenLcbError, InvalidArgumentError, PoolFullError, UnknownNodeError,
+    TransportBusyError, NotInitializedError, ProtocolNotSupportedError,
+    WasmLoadError, TransportConnectError,
 } from './openlcb/errors.js';
 export {
-    PSI, MTI, AddressSpace, EventRangeCount, EventStatus,
-    TrainEmergencyType, BroadcastTimeEventType,
+    PSI, MTI, AddressSpace,
+    TrainSearchFlag, TrainSearchSpeedSteps, TrainSearchProtocol,
+    BroadcastTimeClock, BroadcastTimeCommand,
+    Event, Version,
+    EventStatus, EventRangeCount, TrainEmergencyType, BroadcastTimeEventType,
     DccDetectorDirection, DccDetectorAddressType,
-    TrainSearchFlag,
+    StreamState, ConfigMemStreamPhase, SpaceEncoding, PayloadType,
 } from './openlcb/constants.js';
-export { WebSocketTransport }      from './drivers/websocket/transport.js';
-export { TcpGridConnectTransport } from './drivers/tcp/transport.js';
-export { LocalStorageConfigMemory } from './storage/localstorage-config-memory.js';
-// FileConfigMemory NOT re-exported (Node-only; import directly).
+export { WebSocketTransport, WS_STATE } from './drivers/websocket/transport.js';
+export { LocalStorageConfigMemory }     from './storage/localstorage-config-memory.js';
+// FileConfigMemory NOT re-exported (Node-only; import directly from
+// ./storage/file-config-memory.js).
 ```
+
+> **Note on TCP transport.** Earlier drafts of this document listed
+> `drivers/tcp/transport.js`. That driver is not currently shipped —
+> only the WebSocket transport is in `src/drivers/`. A TCP transport
+> would be added under the same convention (one folder per driver) if
+> needed for a Node-side use case.
 
 ---
 

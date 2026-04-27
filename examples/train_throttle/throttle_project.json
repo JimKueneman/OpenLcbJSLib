@@ -1,0 +1,139 @@
+{
+  "_format": "node_wizard_project",
+  "_version": 1,
+  "selectedNodeType": "train-controller",
+  "currentView": "file-preview",
+  "cdiUserXml": "<?xml version=\"1.0\"?>\n<cdi xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://openlcb.org/schema/cdi/1/4/cdi.xsd\">\n  <identification>\n    <manufacturer>Mustangpeak</manufacturer>\n    <model>Throttle 2000</model>\n    <hardwareVersion>0.1</hardwareVersion>\n    <softwareVersion>0.1</softwareVersion>\n  </identification>\n  <acdi/>\n  <segment space=\"253\" origin=\"0\">\n    <name>User Identification</name>\n    <group>\n      <name>User Identification</name>\n      <description>User-assigned name and description for this node</description>\n      <string size=\"62\">\n        <name>Node Name</name>\n        <description>Short user-assigned name (max 62 characters)</description>\n      </string>\n      <string size=\"63\">\n        <name>Node Description</name>\n        <description>Longer description of this node (max 63 characters)</description>\n      </string>\n    </group>\n  </segment>\n  <segment space=\"253\" origin=\"128\">\n    <name>Configuration</name>\n    <group>\n      <name>Configuration</name>\n      <description>Node configuration settings</description>\n    </group>\n  </segment>\n</cdi>\n",
+  "fdiUserXml": "<?xml version=\"1.0\"?>\n<fdi xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n     xsi:noNamespaceSchemaLocation=\"http://openlcb.org/schema/fdi/1/1/fdi.xsd\">\n\n  <segment space=\"249\" origin=\"0\">\n    <group>\n      <name>Train Functions</name>\n      <function size=\"1\" kind=\"binary\">\n        <name>Headlight</name>\n        <number>0</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>Rear light</name>\n        <number>1</number>\n      </function>\n      <function size=\"1\" kind=\"momentary\">\n        <name>Horn</name>\n        <number>2</number>\n      </function>\n      <function size=\"1\" kind=\"momentary\">\n        <name>Bell</name>\n        <number>3</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F4</name>\n        <number>4</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F5</name>\n        <number>5</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F6</name>\n        <number>6</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F7</name>\n        <number>7</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F8</name>\n        <number>8</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F9</name>\n        <number>9</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F10</name>\n        <number>10</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F11</name>\n        <number>11</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F12</name>\n        <number>12</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F13</name>\n        <number>13</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F14</name>\n        <number>14</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F15</name>\n        <number>15</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F16</name>\n        <number>16</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F17</name>\n        <number>17</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F18</name>\n        <number>18</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F19</name>\n        <number>19</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F20</name>\n        <number>20</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F21</name>\n        <number>21</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F22</name>\n        <number>22</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F23</name>\n        <number>23</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F24</name>\n        <number>24</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F25</name>\n        <number>25</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F26</name>\n        <number>26</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F27</name>\n        <number>27</number>\n      </function>\n      <function size=\"1\" kind=\"binary\">\n        <name>F28</name>\n        <number>28</number>\n      </function>\n    </group>\n  </segment>\n\n</fdi>",
+  "cdiFilename": "(Basic template)",
+  "fdiFilename": "(Basic template)",
+  "preserveWhitespace": false,
+  "configMemHighest": 256,
+  "configFormState": {
+    "nodeType": "train-controller",
+    "cdiLength": 960,
+    "fdiLength": 0,
+    "configMemHighest": "0x100",
+    "projectName": "throttle",
+    "projectAuthor": "Jim Kueneman",
+    "projectNodeId": "02.03.04.05.06.07",
+    "cdiOutputName": "cdi_throttle.xml",
+    "fdiOutputName": "",
+    "broadcast": "none",
+    "firmware": false,
+    "snipEnabled": false,
+    "snipName": "",
+    "snipModel": "",
+    "snipHw": "",
+    "snipSw": "",
+    "unalignedReads": true,
+    "unalignedWrites": true,
+    "producerCount": 64,
+    "producerRangeCount": 4,
+    "consumerCount": 64,
+    "consumerRangeCount": 4,
+    "advBasicBuf": 16,
+    "advDatagramBuf": 2,
+    "advSnipBuf": 4,
+    "advStreamBuf": 0,
+    "advNodeBuf": 1,
+    "advCanBuf": 20,
+    "advTrainNodeCount": 1,
+    "advTrainListeners": 6,
+    "advTrainFunctions": 29,
+    "advProbeTick": 1,
+    "advProbeInterval": 250,
+    "advVerifyTimeout": 30,
+    "wellKnownEvents": {
+      "producers": [
+        "emergency-off",
+        "clear-emergency-off",
+        "emergency-stop",
+        "clear-emergency-stop"
+      ],
+      "consumers": [
+        "train"
+      ]
+    },
+    "openSections": {
+      "project-options-section": true,
+      "addon-events-group": true,
+      "wellknown-events-section": true,
+      "wke-prod-group-0": false,
+      "wke-prod-group-1": false,
+      "wke-prod-group-2": false,
+      "wke-prod-group-3": false,
+      "wke-prod-group-4": false,
+      "wke-prod-group-5": false,
+      "wke-prod-group-6": false,
+      "wke-cons-group-0": false,
+      "wke-cons-group-1": true,
+      "wke-cons-group-2": false,
+      "wke-cons-group-3": false,
+      "wke-cons-group-4": false,
+      "wke-cons-group-5": false,
+      "wke-cons-group-6": false,
+      "addon-config-group": true,
+      "addon-extras-section": true,
+      "addon-advanced-section": true
+    },
+    "currentTab": "can-drivers-h",
+    "splitterWidth": 1432
+  },
+  "driverState": {
+    "can-drivers": {
+      "checked": [
+        "setup",
+        "transmit_raw_can_frame",
+        "is_can_tx_buffer_clear",
+        "is_connected"
+      ]
+    },
+    "olcb-drivers": {
+      "checked": [
+        "setup",
+        "lock_shared_resources",
+        "unlock_shared_resources",
+        "config_mem_read",
+        "config_mem_write"
+      ]
+    }
+  },
+  "callbackState": {
+    "cb-can": {
+      "checked": [
+        "on_rx",
+        "on_tx",
+        "on_alias_change"
+      ]
+    },
+    "cb-olcb": {
+      "checked": [
+        "on_login_complete"
+      ]
+    },
+    "cb-events": {
+      "checked": []
+    },
+    "cb-config-mem": {
+      "checked": [
+        "config_mem_read_delayed_reply_time",
+        "config_mem_write_delayed_reply_time"
+      ]
+    },
+    "cb-firmware": {
+      "checked": []
+    }
+  },
+  "platformState": {
+    "platform": "none",
+    "params": {},
+    "isArduino": false,
+    "framework": "",
+    "libraries": [],
+    "notes": []
+  },
+  "arduino": false,
+  "filePreviewSelection": "register_events.js",
+  "targetLanguage": "js"
+}

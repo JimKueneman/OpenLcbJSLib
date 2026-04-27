@@ -211,6 +211,21 @@ var JsTarget = (function () {
     }
 
     /* ----------------------------------------------------------------------- */
+    /* Output-name helpers (CDI/FDI filename + derived variable name)          */
+    /* ----------------------------------------------------------------------- */
+
+    function _resolveOutputName(custom, defaultName) {
+        var name = (custom || '').trim();
+        return name || defaultName;
+    }
+
+    /* Same algorithm as CTarget._filenameToVarname (kept duplicated to avoid
+     * cross-target imports; both yield identical output for matching input). */
+    function _filenameToVarname(filename) {
+        return '_' + filename.replace(/\.xml$/i, '').replace(/[^a-zA-Z0-9_]/g, '_') + '_data';
+    }
+
+    /* ----------------------------------------------------------------------- */
     /* openlcb_user_config.js builder                                           */
     /* ----------------------------------------------------------------------- */
 
@@ -246,6 +261,13 @@ var JsTarget = (function () {
         var year   = new Date().getFullYear();
         var nodeIdLit = _nodeIdLiteral(s.projectNodeId);
 
+        /* Resolve output names — defaults preserve the historical _cdi_data /
+         * _fdi_data identifiers when the wizard fields are blank. */
+        var cdiOutputName = _resolveOutputName(s.cdiOutputName, 'cdi.xml');
+        var fdiOutputName = _resolveOutputName(s.fdiOutputName, 'fdi.xml');
+        var cdiVarName    = _filenameToVarname(cdiOutputName);
+        var fdiVarName    = _filenameToVarname(fdiOutputName);
+
         var L = [];
 
         /* ---- File header ---- */
@@ -275,11 +297,11 @@ var JsTarget = (function () {
         if (hasCdi) {
             L.push('// ----------------------------------------------------------------------------');
             L.push('// CDI (Configuration Description Information) — UTF-8 bytes + NUL terminator.');
-            L.push('// Mirror of the static const uint8_t _cdi_data[] in openlcb_user_config.c.');
+            L.push('// Mirror of the static const uint8_t ' + cdiVarName + '[] in openlcb_user_config.c.');
             L.push('// Configuration tools read this as a NUL-terminated string.');
             L.push('// ----------------------------------------------------------------------------');
             L.push('');
-            L.push('const _cdi_data = ' + _uint8ArrayLiteral(s.cdiBytes, '    ') + ';');
+            L.push('const ' + cdiVarName + ' = ' + _uint8ArrayLiteral(s.cdiBytes, '    ') + ';');
             L.push('');
         }
 
@@ -288,7 +310,7 @@ var JsTarget = (function () {
             L.push('// FDI (Function Description Information) — UTF-8 bytes + NUL terminator.');
             L.push('// ----------------------------------------------------------------------------');
             L.push('');
-            L.push('const _fdi_data = ' + _uint8ArrayLiteral(s.fdiBytes, '    ') + ';');
+            L.push('const ' + fdiVarName + ' = ' + _uint8ArrayLiteral(s.fdiBytes, '    ') + ';');
             L.push('');
         }
 
@@ -347,7 +369,7 @@ var JsTarget = (function () {
         _emitAddressSpaceJs(L, 'addressSpaceConfigurationDefinitionInfo', {
             present:        hasCfgMem,
             readOnly:       true,
-            highestAddress: hasCdi ? '_cdi_data.length - 1' : '0',
+            highestAddress: hasCdi ? (cdiVarName + '.length - 1') : '0',
             description:    'Configuration Description Information'
         });
 
@@ -382,7 +404,7 @@ var JsTarget = (function () {
         _emitAddressSpaceJs(L, 'addressSpaceTrainFunctionDefinitionInfo', {
             present:        isTrainNode,
             readOnly:       true,
-            highestAddress: hasFdi ? '_fdi_data.length - 1' : '0',
+            highestAddress: hasFdi ? (fdiVarName + '.length - 1') : '0',
             description:    'Train FDI'
         });
 
@@ -402,8 +424,8 @@ var JsTarget = (function () {
 
         /* 14-15. cdi / fdi */
         L.push('    // 14-15. cdi / fdi byte arrays');
-        L.push('    cdi: ' + (hasCdi ? '_cdi_data' : 'null') + ',');
-        L.push('    fdi: ' + (hasFdi ? '_fdi_data' : 'null') + ',');
+        L.push('    cdi: ' + (hasCdi ? cdiVarName : 'null') + ',');
+        L.push('    fdi: ' + (hasFdi ? fdiVarName : 'null') + ',');
         L.push('};');
         L.push('');
 
@@ -583,6 +605,11 @@ var JsTarget = (function () {
 
         var prodCount = 0;
 
+        /* IS_TRAIN producer/consumer registration is OWNED by the node-type
+         * branches below.  The 'train' WKE entry is filtered out of the
+         * user-selected WKE loops to avoid duplicate or cross-node-type
+         * emissions. */
+
         if (isTrainNode) {
             L.push('    // Train node produces "Is Train" to identify itself on the network');
             L.push('    node.registerProducer(Event.IS_TRAIN, EventStatus.EVENT_STATUS_SET);');
@@ -604,13 +631,15 @@ var JsTarget = (function () {
             prodCount++;
         }
 
-        if (wke.producers.length > 0) {
+        /* User-selected WKE producers, minus 'train' (handled above by node-type). */
+        var userProducers = wke.producers.filter(function (id) { return id !== 'train'; });
+        if (userProducers.length > 0) {
             if (prodCount > 0) { L.push(''); }
             L.push('    // Well Known Event producers (selected in Node Wizard)');
-            wke.producers.forEach(function (id) {
+            userProducers.forEach(function (id) {
                 _emitWkeRegistration(L, wkeMap[id], 'producer');
             });
-            prodCount += wke.producers.length;
+            prodCount += userProducers.length;
         }
 
         if (prodCount === 0) {
@@ -636,6 +665,9 @@ var JsTarget = (function () {
             L.push('    node.registerConsumer(Event.CLEAR_EMERGENCY_STOP, EventStatus.EVENT_STATUS_SET);');
             consCount += 4;
         }
+        /* No explicit Train Controller branch for IS_TRAIN consumer — it's
+         * driven by the user's WKE consumer checkbox (auto-checked by the
+         * wizard as a hint when Train Controller is selected). */
 
         if (broadcastOn) {
             if (consCount > 0) { L.push(''); }
@@ -644,6 +676,9 @@ var JsTarget = (function () {
             consCount++;
         }
 
+        /* User-selected WKE consumers — 'train' is allowed through here
+         * (consumer is driven by the wizard's WKE checkbox, unlike the
+         * producer side which is locked to the Train node type). */
         if (wke.consumers.length > 0) {
             if (consCount > 0) { L.push(''); }
             L.push('    // Well Known Event consumers (selected in Node Wizard)');
@@ -755,12 +790,15 @@ var JsTarget = (function () {
             content: _generateRegisterEventsJs(wizardState, codegenState, psiImportPath)
         });
 
+        var cdiName = _resolveOutputName(codegenState.cdiOutputName, 'cdi.xml');
+        var fdiName = _resolveOutputName(codegenState.fdiOutputName, 'fdi.xml');
+
         if (wizardState.cdiUserXml && wizardState.cdiUserXml.trim()) {
-            entries.push({ path: 'cdi.xml', content: wizardState.cdiUserXml });
+            entries.push({ path: cdiName, content: wizardState.cdiUserXml });
         }
 
         if (wizardState.selectedNodeType === 'train' && wizardState.fdiUserXml && wizardState.fdiUserXml.trim()) {
-            entries.push({ path: 'fdi.xml', content: wizardState.fdiUserXml });
+            entries.push({ path: fdiName, content: wizardState.fdiUserXml });
         }
 
         entries.push({
@@ -784,20 +822,21 @@ var JsTarget = (function () {
     /* renderByteArray — used by the CDI/FDI editors' "Array" view             */
     /* ----------------------------------------------------------------------- */
 
-    function renderByteArray(rows, kind) {
+    function renderByteArray(rows, kind, options) {
 
-        var lower = (kind || 'cdi').toLowerCase();
-        var upper = lower.toUpperCase();
-        var lines = [];
-        var total = 0;
+        var lower   = (kind || 'cdi').toLowerCase();
+        var upper   = lower.toUpperCase();
+        var varName = (options && options.varName) || ('_' + lower + '_data');
+        var lines   = [];
+        var total   = 0;
 
         lines.push('// ' + upper + ' byte array.');
-        lines.push('// Paste this into openlcb_user_config.js as the value of _' + lower + '_data,');
+        lines.push('// Paste this into openlcb_user_config.js as the value of ' + varName + ',');
         lines.push('// then reference it from OpenLcbUserConfig_node_parameters.' + lower + '.');
         lines.push('//');
         lines.push('// NOTE: THIS IS FOR CONVENIENCE OF THOSE MANUALLY BUILDING THEIR openlcb_user_config.js FILE.');
         lines.push('');
-        lines.push('const _' + lower + '_data = Uint8Array.from([');
+        lines.push('const ' + varName + ' = Uint8Array.from([');
 
         rows.forEach(function (row) {
             var line = '';

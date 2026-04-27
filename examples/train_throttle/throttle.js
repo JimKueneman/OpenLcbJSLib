@@ -24,10 +24,18 @@ import {
     TrainSearchFlag, TrainSearchSpeedSteps, TrainSearchProtocol,
     TransportBusyError,
 } from '../../src/index.js';
+import { LocalStorageConfigMemory } from '../../src/storage/localstorage-config-memory.js';
 import {
     NODE_ID,
     OpenLcbUserConfig_node_parameters,
 } from './openlcb_user_config.js';
+import { registerEvents } from './register_events.js';
+
+// Persist Configuration Memory across reloads.  Size derives from the
+// throttle's declared 0xFD address space so the two stay in sync.
+const cfgMem = new LocalStorageConfigMemory({
+    size: OpenLcbUserConfig_node_parameters.addressSpaceConfigMemory.highestAddress + 1,
+});
 
 // -----------------------------------------------------------------------------
 // UI helpers
@@ -84,10 +92,10 @@ const state = {
     // create a train", and a search without Allocate just times out
     // silently when no train exists yet.
     flags: { exact: false, addr: false, alloc: true },
-    trackProto: 'dcc',        // 'any' | 'openlcb' | 'mfx' | 'mm' | 'dcc'
-    dccLong: true,
+    trackProto: 'any',        // 'any' | 'openlcb' | 'mfx' | 'mm' | 'dcc' — default Any so the user finds whatever's there
+    dccLong: false,           // default short (DCC 3 is the universal "out-of-the-box" address)
     mmVersion: 'any',         // 'any' | 'v1' | 'v2' | 'v2ext'
-    stepMode: 128,
+    stepMode: 0,              // 0 = Default/Any, 14, 28, 128 — TrainSearchS Table 4 DCC bits 1-0
 
     pendingSearchEvent: null,
     searchHits: new Map(),    // dccAddr -> { addr, long, nodeId, alias, status }
@@ -245,9 +253,27 @@ $('btnConnect').addEventListener('click', async () => {
             // it failed.  Fix A (CLib sends actual remaining time, not full
             // configured period) makes that assumption hold.
 
-            onConfigMemRead:  (_n, _a, c, buf) => { buf.fill(0); return c; },
-            onConfigMemWrite: (_n, _a, c)       => c,
+            // Configuration Memory persists in localStorage, keyed by NodeID.
+            // ACDI User name/description (offsets 0..126 of space 0xFD per
+            // CONFIG_MEM_CONFIG_USER_NAME_OFFSET / _DESCRIPTION_OFFSET) and
+            // every CDI-defined byte ride this same path.
+            onConfigMemRead:  cfgMem.read.bind(cfgMem),
+            onConfigMemWrite: cfgMem.write.bind(cfgMem),
+
+            // Memory Configuration ops — fired by the WASM bridge after
+            // the library has already sent the datagram-OK reply.
+            onUpdateComplete: (n) => log(`config update complete on ${hexDot(n.id)}`),
+            onReboot:         (n) => { log(`reset/reboot received for ${hexDot(n.id)}`); softReboot(); },
+            onFactoryReset:   (n) => {
+                log(`factory reset received for ${hexDot(n.id)} — clearing storage`);
+                cfgMem.clear(n.id);
+            },
         });
+
+        // Register the wizard-derived producer/consumer events on this node.
+        // For Train Controller: 4 emergency event producers (UNKNOWN status)
+        // + IS_TRAIN consumer + any user-selected Well Known Events.
+        registerEvents(state.throttleNode);
 
         // Test hook — when state.testSilent is true, drop all outgoing
         // frames at the transport layer.  Simulates the throttle vanishing
@@ -287,23 +313,57 @@ $('btnDisconnect').addEventListener('click', async () => {
     log('disconnected');
 });
 
+// Soft reboot — discards the WASM module and re-instantiates a fresh stack,
+// keeping the WebSocket open.  After this, the throttle node has a new
+// alias and any prior train assignment is invalid (the train side dropped
+// us).  Reset throttle-local UI state to match.
+async function softReboot() {
+    if (!state.openlcb) return;
+    state.train = null;
+    state.searchHits.clear();
+    state.pendingVerify.clear();
+    state.pendingSearchEvent = null;
+    stopHeartbeatWatchdog();
+    renderRoster();
+    show('roster');
+    try {
+        await state.openlcb.reboot();
+        // onLoginComplete fires for the fresh node on the existing transport.
+    } catch (e) {
+        log(`reboot failed: ${e?.message ?? e}`);
+        setStatus('disconnected');
+        show('connect');
+    }
+}
+
 // =============================================================================
 // Roster / search
 // =============================================================================
 
-document.querySelectorAll('#flagGroup .chip').forEach(c => {
+// Generic flag chips (data-flag): Exact / Addr only / Allocate.
+// Force long (data-dcc="long") is a sibling chip in the same group but
+// has its own handler below, so we skip it here.
+document.querySelectorAll('#flagGroup .chip[data-flag]').forEach(c => {
     // Reflect initial state.flags into the chip's visual state.
     const f = c.dataset.flag;
     if (state.flags[f]) c.classList.add('on');
     c.addEventListener('click', () => {
+        if (c.classList.contains('disabled')) return;
         state.flags[f] = !state.flags[f];
         c.classList.toggle('on', state.flags[f]);
+        updateSearchPreview();
     });
 });
 
 function updateProtoVisibility() {
-    $('dccOptions').hidden = state.trackProto !== 'dcc';
-    $('mmOptions').hidden  = state.trackProto !== 'mm';
+    // When Any is selected, the search will accept BOTH DCC and MM matches,
+    // so both sub-option groups are reachable.  When a specific family is
+    // selected, only that family's sub-options are visible.
+    const showDcc = state.trackProto === 'any' || state.trackProto === 'dcc';
+    const showMm  = state.trackProto === 'any' || state.trackProto === 'mm';
+    $('chipForceLong').hidden   = !showDcc;
+    $('dccStepsSection').hidden = !showDcc;
+    $('mmSection').hidden       = !showMm;
 }
 
 document.querySelectorAll('#protoGroup .chip').forEach(c => {
@@ -311,16 +371,18 @@ document.querySelectorAll('#protoGroup .chip').forEach(c => {
         state.trackProto = c.dataset.proto;
         document.querySelectorAll('#protoGroup .chip').forEach(o => o.classList.toggle('on', o === c));
         updateProtoVisibility();
+        updateSearchPreview();
     });
 });
 
-document.querySelectorAll('#dccFlagGroup .chip').forEach(c => {
+// Force long lives in #flagGroup but is identified by data-dcc="long" so
+// we can find it regardless of where it's parented in the DOM.
+document.querySelectorAll('.chip[data-dcc="long"]').forEach(c => {
     c.addEventListener('click', () => {
-        const f = c.dataset.dcc;
-        if (f === 'long') {
-            state.dccLong = !state.dccLong;
-            c.classList.toggle('on', state.dccLong);
-        }
+        if (c.hidden || c.classList.contains('disabled')) return;
+        state.dccLong = !state.dccLong;
+        c.classList.toggle('on', state.dccLong);
+        updateSearchPreview();
     });
 });
 
@@ -328,6 +390,7 @@ document.querySelectorAll('#mmGroup .chip').forEach(c => {
     c.addEventListener('click', () => {
         state.mmVersion = c.dataset.mm;
         document.querySelectorAll('#mmGroup .chip').forEach(o => o.classList.toggle('on', o === c));
+        updateSearchPreview();
     });
 });
 
@@ -335,16 +398,61 @@ document.querySelectorAll('#stepGroup .chip').forEach(c => {
     c.addEventListener('click', () => {
         state.stepMode = parseInt(c.dataset.step, 10);
         document.querySelectorAll('#stepGroup .chip').forEach(o => o.classList.toggle('on', o === c));
-        $('speed').max = state.stepMode;
-        updateSpeedReadout();
+        // Speed-step chip controls the throttle's slider resolution too,
+        // but only when a real step mode is picked (Default = leave at 128).
+        if (state.stepMode > 0) {
+            $('speed').max = state.stepMode;
+            updateSpeedReadout();
+        }
+        updateSearchPreview();
     });
+});
+
+// Help toggle on the Find a Train card head — collapses every .hint-inline
+// underneath, for users who've outgrown the tutorial text.  State persists
+// across reloads via localStorage.
+const HELP_LS_KEY = 'throttle.findCard.helpHidden';
+function applyHelpVisibility() {
+    const card = $('findCard');
+    const hide = localStorage.getItem(HELP_LS_KEY) === '1';
+    card.classList.toggle('hide-help', hide);
+    $('btnToggleHelp').textContent = hide ? 'Show help' : 'Hide help';
+}
+$('btnToggleHelp').addEventListener('click', () => {
+    const nowHidden = !$('findCard').classList.contains('hide-help');
+    localStorage.setItem(HELP_LS_KEY, nowHidden ? '1' : '0');
+    applyHelpVisibility();
+});
+applyHelpVisibility();
+
+// Always strip everything except digits and term separators (space, comma)
+// from the query input.  The wire format only encodes digits + 0xF
+// separator (TrainSearchS §5.2 Table 2), so letters can never make it onto
+// the bus — accepting them would be misleading.
+function applyQueryFilter() {
+    const el = $('q');
+    const filtered = el.value.replace(/[^\d\s,]/g, '');
+    if (filtered !== el.value) {
+        const caret = el.selectionStart;
+        el.value = filtered;
+        if (caret != null) el.setSelectionRange(Math.min(caret, filtered.length), Math.min(caret, filtered.length));
+    }
+}
+
+$('q').addEventListener('input', () => {
+    applyQueryFilter();
+    updateSearchPreview();
 });
 
 function buildSearchFlags() {
     let f = 0;
     if (state.flags.alloc) f |= TrainSearchFlag.ALLOCATE;
     if (state.flags.exact) f |= TrainSearchFlag.EXACT;
-    if (state.flags.addr)  f |= TrainSearchFlag.ADDRESS_ONLY;
+    // Address-only is invalid for multi-term queries (multi-term can't
+    // match Address per spec §6.3) — encoder forces it off in that case.
+    if (state.flags.addr && parseSearchTerms($('q').value).length <= 1) {
+        f |= TrainSearchFlag.ADDRESS_ONLY;
+    }
     switch (state.trackProto) {
         case 'openlcb':
             f |= TrainSearchProtocol.OPENLCB_NATIVE;
@@ -361,6 +469,7 @@ function buildSearchFlags() {
         case 'dcc':
             f |= TrainSearchProtocol.FAMILY_DCC;
             if (state.dccLong) f |= TrainSearchFlag.LONG_ADDR;
+            // stepMode 0 = Default/Any — emit no step bits (spec STEPS_DEFAULT)
             if      (state.stepMode === 14)  f |= TrainSearchSpeedSteps.STEPS_14;
             else if (state.stepMode === 28)  f |= TrainSearchSpeedSteps.STEPS_28;
             else if (state.stepMode === 128) f |= TrainSearchSpeedSteps.STEPS_128;
@@ -372,14 +481,198 @@ function buildSearchFlags() {
     return f;
 }
 
+// =============================================================================
+// Query encoding — TrainSearchS §5.2
+// =============================================================================
+//
+// The 6-nibble query in bytes 5-7 of the Event ID supports:
+//   - single digit run                   "415"        → FFF415
+//   - multi-term AND with F separator    "47 415"     → 47F415
+//   - empty / match-all                  ""           → FFFFFF
+//
+// Per spec §6.3, multi-term queries can ONLY match Name (not Address).
+// The encoder enforces this by zeroing the Address-only flag on multi-term.
+
+function parseSearchTerms(text) {
+    if (!text) return [];
+    return text.split(/[\s,]+/).map(t => t.replace(/\D/g, '')).filter(Boolean);
+}
+
+function buildSearchQueryBytes(text) {
+    const terms = parseSearchTerms(text);
+    if (terms.length === 0) {
+        return [0xFF, 0xFF, 0xFF];   // match-all
+    }
+    const joined = terms.join('F');
+    if (joined.length > 6) {
+        throw new RangeError(`Query too long: ${joined.length} digit-nibbles, max 6 (use shorter terms)`);
+    }
+    const padded = joined.padStart(6, 'F');   // MSB-first
+    return [
+        (parseInt(padded[0], 16) << 4) | parseInt(padded[1], 16),
+        (parseInt(padded[2], 16) << 4) | parseInt(padded[3], 16),
+        (parseInt(padded[4], 16) << 4) | parseInt(padded[5], 16),
+    ];
+}
+
+function buildSearchEventId(queryBytes, flags) {
+    // 09.00.99.FF.qq.qq.qq.rr  per TrainSearchS §5.2 Table 1
+    const prefix = 0x090099FFn;
+    const q = (BigInt(queryBytes[0]) << 16n) | (BigInt(queryBytes[1]) << 8n) | BigInt(queryBytes[2]);
+    return (prefix << 32n) | (q << 8n) | BigInt(flags);
+}
+
+// =============================================================================
+// Live preview + UI mutual-exclusion rules
+// =============================================================================
+
+function updateSearchPreview() {
+    const text = $('q').value;
+    const terms = parseSearchTerms(text);
+    const isMulti = terms.length > 1;
+    const isEmpty = terms.length === 0;
+
+    // ----- Address-only chip auto-greys for multi-term ---------------------
+    const addrChip = document.querySelector('#flagGroup .chip[data-flag="addr"]');
+    addrChip.classList.toggle('disabled', isMulti);
+    addrChip.title = isMulti
+        ? 'Disabled: multi-term queries can only match Name (spec §6.3)'
+        : 'Match against Address only, not Name';
+
+    // ----- Encode -----------------------------------------------------------
+    let qBytes, qHex;
+    try {
+        qBytes = buildSearchQueryBytes(text);
+        qHex = qBytes.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
+    } catch (e) {
+        $('eventPreview').textContent = '— (search number is too long)';
+        $('flagPreview').textContent  = '—';
+        $('hintQuery').textContent    = 'That search has too many digits. Try shorter numbers, or fewer numbers.';
+        $('hintResult').textContent   = '⚠ Cannot search until the number is shortened.';
+        $('btnSearch').disabled = true;
+        return;
+    }
+    const flags = buildSearchFlags();
+    const eventHex = '09.00.99.FF.' + qHex.match(/../g).join('.') + '.' + flags.toString(16).toUpperCase().padStart(2, '0');
+    $('eventPreview').textContent = eventHex;
+    $('flagPreview').textContent  = '0x' + flags.toString(16).toUpperCase().padStart(2, '0');
+    $('btnSearch').disabled = false;
+
+    // ----- Hint row 1: Query ------------------------------------------------
+    if (isEmpty) {
+        $('hintQuery').textContent = 'Type a number to search for. An empty box will not find anything.';
+    } else if (isMulti) {
+        $('hintQuery').textContent = `Find trains whose name contains all of these numbers: ${terms.map(t => `"${t}"`).join(' and ')}.`;
+    } else {
+        $('hintQuery').textContent = `Find the train with DCC address ${terms[0]}, or any train whose name contains "${terms[0]}".`;
+    }
+
+    // ----- Hint row 2: Flags — always show all three lines, in chip order ---
+    // Each line is its own visual block with a dimmed label prefix so it
+    // reads as discrete blocks of info, not a paragraph.
+    const fLines = [];
+    const tag = (label, body) => `<div class="flag-line"><span class="flag-name">${label}</span> ${body}</div>`;
+
+    // 1. Exact (matches chip order).  When Exact is OFF, the example we
+    // show depends on whether Addr-only is also active — the search scope
+    // changes (Address-only vs. Address-and-Name).
+    const effectiveAddrOnly = state.flags.addr && !isMulti;
+    if (state.flags.exact) {
+        fLines.push(tag('Exact:', 'match this number only — no partial matches.'));
+    } else if (effectiveAddrOnly) {
+        fLines.push(tag('Exact:', 'partial prefix matching — typing "47" will find "47", "470", "471", … it will not find "5470", "1347", …'));
+    } else {
+        fLines.push(tag('Exact:', 'partial prefix matching — typing "47" will find "47", "SP 470", "471", … it will not find "5470", "UP 1347", …'));
+    }
+
+    // 2. Addr only
+    if (isMulti) {
+        fLines.push(tag('Addr only:', 'not used — multi-number searches always look in the train\'s name.'));
+    } else {
+        fLines.push(tag('Addr only:', state.flags.addr
+            ? 'search by DCC address only — ignore the train\'s name.'
+            : 'search both DCC address and the train\'s name.'));
+    }
+
+    // 3. Allocate
+    fLines.push(tag('Allocate:', state.flags.alloc
+        ? 'if no train responds, the command station will create a new train at this address.'
+        : 'if no train responds, no new train will be created.'));
+
+    // 4. Force long (only when the chip is visible — Any or DCC protocol)
+    const showForceLong = state.trackProto === 'any' || state.trackProto === 'dcc';
+    if (showForceLong) {
+        fLines.push(tag('Force long:', state.dccLong
+            ? 'only finds DCC long (14-bit) trains. Numbers 1–127 must use a short address.'
+            : 'numbers 1–127 use short DCC addresses; 128+ use long. Turn on to find a long-address train at 1–127.'));
+    }
+
+    // 5. Result — what will happen when Search is clicked.  Stays as the
+    //    last line of the Flags hint block so it's right after the orthogonal
+    //    flag descriptions and reads as the conclusion.
+    let result;
+    if (isEmpty && state.flags.alloc) {
+        result = '⚠ Type a number first. With Allocate on but no number, the command station has no address to use.';
+    } else if (isEmpty) {
+        result = '⚠ Type a number to search. An empty box will not find any trains.';
+    } else if (state.flags.alloc && state.flags.exact) {
+        result = 'Look for this exact train. If it is not on the network, a new one will be created.';
+    } else if (state.flags.alloc && !state.flags.exact) {
+        result = '⚠ Without Exact, a partial match (like finding 470 when you typed 47) will prevent creating a new train. For best results, turn on Exact too.';
+    } else if (state.flags.exact) {
+        result = 'Find this exact train if it is already on the network. Will not create one.';
+    } else {
+        result = 'Find any train whose DCC address starts with what you typed, or whose name contains a number starting with what you typed. Will not create one.';
+    }
+    fLines.push(tag('Result:', result));
+
+    $('hintFlags').innerHTML = fLines.join('');
+    // Keep the legacy hintResult element in sync (used by error paths).
+    $('hintResult').textContent = result;
+
+    // ----- Hint row 3: Protocol --------------------------------------------
+    const protoLabels = {
+        any:     'Find any kind of train.',
+        openlcb: 'Only find native OpenLCB trains.',
+        mfx:     'Only find MFX / M4 trains.',
+        mm:      'Only find Märklin-Motorola trains.',
+        dcc:     'Only find DCC trains.',
+    };
+    $('hintProto').textContent = protoLabels[state.trackProto];
+
+    // ----- Protocol-specific hints (panels above already hide; just fill text) --
+    const mmLabels = {
+        any:    'Any version of MM is fine.',
+        v1:     'v1 — older MM, 14 speed steps and F0 only.',
+        v2:     'v2 — directional, F0 through F4.',
+        v2ext:  'v2 extended — adds F5–F8.',
+    };
+    $('hintMm').textContent = mmLabels[state.mmVersion];
+
+    // (Force long hint moved to the Flags hint block above, since the chip
+    // now lives in the Flags row for quick access.)
+    $('hintDccSteps').textContent = state.stepMode === 0
+        ? 'Let the train use whatever speed step setting it has (recommended).'
+        : `Suggest ${state.stepMode} speed steps to the train. Trains will respond regardless of which value you pick here.`;
+
+    // (Result line is built inside the Flags hint block above as the last
+    // flag-line — it's the conclusion drawn from the orthogonal flags.)
+}
+
 $('btnSearch').addEventListener('click', () => {
     if (!state.openlcb || !state.throttleNode) return;
-    const q = $('q').value.trim();
-    const addr = parseInt(q, 10);
-    if (!Number.isFinite(addr) || addr <= 0) { log(`search needs a numeric DCC address (got "${q}")`); return; }
+
+    const text = $('q').value;
+    let qBytes;
+    try {
+        qBytes = buildSearchQueryBytes(text);
+    } catch (e) {
+        log(`search query invalid: ${e.message}`);
+        return;
+    }
 
     const flags = buildSearchFlags();
-    const eventId = state.openlcb.trainSearch.createEventId(addr, flags);
+    const eventId = buildSearchEventId(qBytes, flags);
     state.pendingSearchEvent = eventId;
     state.searchHits.clear();
     renderRoster();
@@ -390,7 +683,10 @@ $('btnSearch').addEventListener('click', () => {
         log(`search send failed: ${e?.message ?? e}`);
         return;
     }
-    log(`search DCC ${addr} flags=0x${flags.toString(16).padStart(2,'0')} event=${eventId.toString(16).toUpperCase()}`);
+
+    const terms = parseSearchTerms(text);
+    const summary = terms.length === 0 ? 'match-all' : terms.join(' AND ');
+    log(`search "${summary}" flags=0x${flags.toString(16).padStart(2,'0')} event=${eventId.toString(16).toUpperCase()}`);
     $('resultCount').textContent = 'waiting…';
 
     setTimeout(() => {
@@ -772,4 +1068,6 @@ $('nodeId').value = NODE_ID.toString(16).padStart(12, '0');
 
 updateSpeedReadout();
 renderFunctions();
+updateProtoVisibility();   // sync sub-section visibility with state.trackProto on first paint
+updateSearchPreview();
 log('ready — click Connect to attach to JMRI');

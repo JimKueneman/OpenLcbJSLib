@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<fdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/fdi/1/1/fdi.xsd">
+
+  <segment space="249" origin="0">
+    <group>
+      <name>Train Functions</name>
+      <function size="1" kind="binary">
+        <name>Headlight</name>
+        <number>0</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>Rear light</name>
+        <number>1</number>
+      </function>
+      <function size="1" kind="momentary">
+        <name>Horn</name>
+        <number>2</number>
+      </function>
+      <function size="1" kind="momentary">
+        <name>Bell</name>
+        <number>3</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F4</name>
+        <number>4</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F5</name>
+        <number>5</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F6</name>
+        <number>6</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F7</name>
+        <number>7</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F8</name>
+        <number>8</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F9</name>
+        <number>9</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F10</name>
+        <number>10</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F11</name>
+        <number>11</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F12</name>
+        <number>12</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F13</name>
+        <number>13</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F14</name>
+        <number>14</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F15</name>
+        <number>15</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F16</name>
+        <number>16</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F17</name>
+        <number>17</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F18</name>
+        <number>18</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F19</name>
+        <number>19</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F20</name>
+        <number>20</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F21</name>
+        <number>21</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F22</name>
+        <number>22</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F23</name>
+        <number>23</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F24</name>
+        <number>24</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F25</name>
+        <number>25</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F26</name>
+        <number>26</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F27</name>
+        <number>27</number>
+      </function>
+      <function size="1" kind="binary">
+        <name>F28</name>
+        <number>28</number>
+      </function>
+    </group>
+  </segment>
+
+</fdi>

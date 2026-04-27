@@ -221,6 +221,13 @@ function _applyTargetLanguage(target) {
         firmwareCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
+    /* Well Known Events: hide the Firmware group on both Producer and Consumer
+     * sides for JS — the JS lib has no firmware-upgrade flow. */
+    document.querySelectorAll('summary[data-help="wke-group-firmware"]').forEach(function (sum) {
+        const details = sum.closest('details.wke-group');
+        if (details) { details.classList.toggle('hidden', isJs); }
+    });
+
     if (isJs && selectedNodeType === 'bootloader') {
         applyNodeType('basic');
         if (_isEmbedded) {
@@ -334,16 +341,35 @@ function applyNodeType(type) {
         dgBuf.value = '8';
     }
 
-    /* Auto-check and lock Well Known Events based on node type */
+    /* Well Known Events for IS_TRAIN.
+     *
+     * Producer: node-type owns this completely.
+     *   - Train         -> checked + disabled (a train must produce IS_TRAIN)
+     *   - Anything else -> unchecked + disabled (only trains may produce it)
+     *
+     * Consumer: always enabled — user decides.  As a hint, default-check it
+     * when the user picks Train Controller (a throttle typically wants to
+     * discover trains).  Track the auto-check in a dataset flag so that
+     * switching AWAY from Train Controller cleans up our hint, but a manual
+     * user toggle is preserved (the change handler clears the flag). */
     var trainProdChk = document.getElementById('wke-prod-train');
     var trainConsChk = document.getElementById('wke-cons-train');
     if (trainProdChk) {
         trainProdChk.checked  = (type === 'train');
-        trainProdChk.disabled = (type === 'train');
+        trainProdChk.disabled = true;
     }
     if (trainConsChk) {
-        trainConsChk.checked  = (type === 'train-controller');
-        trainConsChk.disabled = (type === 'train-controller');
+        var wasAutoChecked = trainConsChk.dataset.autoChecked === 'true';
+        if (type === 'train-controller') {
+            if (!trainConsChk.checked) {
+                trainConsChk.checked = true;
+                trainConsChk.dataset.autoChecked = 'true';
+            }
+        } else if (wasAutoChecked) {
+            trainConsChk.checked = false;
+            delete trainConsChk.dataset.autoChecked;
+        }
+        trainConsChk.disabled = false;
     }
 
     /* Show the options section */
@@ -477,8 +503,21 @@ function _updateBroadcastNote() {
     if (el) { el.addEventListener('change', updatePreview); }
 });
 
+/* IS_TRAIN consumer — clear the "auto-checked by Train Controller" hint
+ * the moment the user touches the checkbox manually, so a later node-type
+ * switch doesn't undo their explicit choice. */
+(function () {
+    var el = document.getElementById('wke-cons-train');
+    if (el) {
+        el.addEventListener('change', function () {
+            delete el.dataset.autoChecked;
+        });
+    }
+}());
+
 /* Project Options and text inputs (project-node-id handled by auto-format below) */
 ['project-name', 'project-author',
+ 'cdi-output-name', 'fdi-output-name',
  'config-mem-highest-addr',
  'snip-manufacturer', 'snip-model', 'snip-hw-version', 'snip-sw-version'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
@@ -591,6 +630,8 @@ function getState() {
         projectName:      document.getElementById('project-name').value.trim(),
         projectAuthor:    document.getElementById('project-author').value.trim(),
         projectNodeId:    document.getElementById('project-node-id').value.trim(),
+        cdiOutputName:    document.getElementById('cdi-output-name').value.trim(),
+        fdiOutputName:    document.getElementById('fdi-output-name').value.trim(),
         broadcast:        broadcastEl ? broadcastEl.value : 'none',
         firmware:         document.getElementById('addon-firmware').checked,
         snipEnabled:      document.getElementById('addon-snip').checked,
@@ -1370,6 +1411,8 @@ function _postStateToParent(state) {
             projectName:        state.projectName,
             projectAuthor:      state.projectAuthor,
             projectNodeId:      state.projectNodeId,
+            cdiOutputName:      state.cdiOutputName,
+            fdiOutputName:      state.fdiOutputName,
             broadcast:          state.broadcast,
             firmware:           state.firmware,
             snipEnabled:        state.snipEnabled,
@@ -1458,6 +1501,8 @@ window.addEventListener('message', function (e) {
 
         /* Project Options */
         if (f.projectName  !== undefined) { document.getElementById('project-name').value  = f.projectName; }
+        if (f.cdiOutputName !== undefined) { document.getElementById('cdi-output-name').value = f.cdiOutputName; }
+        if (f.fdiOutputName !== undefined) { document.getElementById('fdi-output-name').value = f.fdiOutputName; }
         if (f.projectAuthor !== undefined) { document.getElementById('project-author').value = f.projectAuthor; }
         if (f.projectNodeId !== undefined) { document.getElementById('project-node-id').value = f.projectNodeId; }
 
@@ -2042,6 +2087,8 @@ document.getElementById('btn-reset-defaults').addEventListener('click', function
     document.getElementById('project-name').value   = '';
     document.getElementById('project-author').value = '';
     document.getElementById('project-node-id').value = '';
+    document.getElementById('cdi-output-name').value = '';
+    document.getElementById('fdi-output-name').value = '';
 
     /* Config Memory */
     document.getElementById('config-unaligned-reads').checked  = true;

@@ -1,84 +1,78 @@
 // Browser-side Configuration Memory persistence backed by localStorage.
 //
-// Plugs into OpenLcbConfig:
+// Plugs into a node's createNode callbacks:
 //
-//   const cfgMem = new LocalStorageConfigMemory();
-//   new OpenLcbConfig({
-//       websocketUrl: '...',
-//       configMemoryRead:  cfgMem.read.bind(cfgMem),
-//       configMemoryWrite: cfgMem.write.bind(cfgMem),
+//   const cfgMem = new LocalStorageConfigMemory({ size: 256 });
+//   openlcb.createNode(NODE_ID, params, {
+//       onConfigMemRead:  cfgMem.read.bind(cfgMem),
+//       onConfigMemWrite: cfgMem.write.bind(cfgMem),
+//       onFactoryReset:   (n) => { cfgMem.clear(n.id); openlcb.reboot(); },
 //   });
 //
-// One localStorage key per Node ID, contents base64-encoded. Reads return
-// zeros for untouched regions. Designed for the modest config-memory sizes
-// OpenLCB nodes typically use (a few KB).
+// Bytes for each node live under one localStorage key (NodeID-namespaced).
+// Reads of never-written addresses return zero — required for tools that
+// expect null-terminated strings (JMRI's SNIP user-name display, etc.).
+//
+// Backed by LocalStore (src/storage/local-store.js).  Application code that
+// wants to persist its own data should use LocalStore directly rather than
+// piggy-back on the config-memory blob.
+
+import { LocalStore } from './local-store.js';
+
+const DEFAULT_KEY = 'config-mem';
 
 export class LocalStorageConfigMemory {
     /**
      * @param {Object} [opts]
-     * @param {string} [opts.keyPrefix='openlcb-cfg:']
-     * @param {number} [opts.size=1024]  capacity (bytes) allocated on first write
-     * @param {Storage} [opts.storage]  override for testing (default: window.localStorage)
+     * @param {number} [opts.size=1024]      capacity (bytes) — should match
+     *                                       node's addressSpaceConfigMemory.highestAddress
+     * @param {LocalStore} [opts.store]      backing KV (default: new LocalStore())
+     * @param {string} [opts.keyPrefix]      forwarded to LocalStore if `store` is omitted
+     * @param {Storage} [opts.storage]       forwarded to LocalStore if `store` is omitted
+     * @param {string} [opts.subKey]         per-node sub-key (default: 'config-mem')
      */
     constructor(opts = {}) {
-        this._prefix = opts.keyPrefix ?? 'openlcb-cfg:';
         this._size = opts.size ?? 1024;
-        this._storage = opts.storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
-        if (!this._storage) {
-            throw new Error('LocalStorageConfigMemory: no localStorage available (pass opts.storage)');
-        }
+        this._subKey = opts.subKey ?? DEFAULT_KEY;
+        this._store = opts.store ?? new LocalStore({
+            keyPrefix: opts.keyPrefix,
+            storage:   opts.storage,
+        });
     }
 
-    /** Matches OpenLcbConfig's `configMemoryRead` signature. */
+    /** Matches the `onConfigMemRead` callback signature. */
     read(node, address, count, buffer) {
-        const bytes = this._load(node.id);
+        const bytes = this._loadOrInit(node.id);
         for (let i = 0; i < count; i++) {
             buffer[i] = bytes[address + i] ?? 0;
         }
         return count;
     }
 
-    /** Matches OpenLcbConfig's `configMemoryWrite` signature. */
+    /** Matches the `onConfigMemWrite` callback signature. */
     write(node, address, count, buffer) {
-        const bytes = this._load(node.id);
-        if (address + count > bytes.length) {
-            // Grow to fit the write.
-            const grown = new Uint8Array(address + count);
-            grown.set(bytes);
-            bytes.set(bytes.subarray(0, bytes.length), 0);
-            this._save(node.id, grown);
-            for (let i = 0; i < count; i++) grown[address + i] = buffer[i];
-            this._save(node.id, grown);
-            return count;
-        }
+        const bytes = this._loadOrInit(node.id);
+        const need = address + count;
+        const target = need > bytes.length ? this._growTo(bytes, need) : bytes;
         for (let i = 0; i < count; i++) {
-            bytes[address + i] = buffer[i];
+            target[address + i] = buffer[i];
         }
-        this._save(node.id, bytes);
+        this._store.setBytes(node.id, this._subKey, target);
         return count;
     }
 
-    /** Clear all stored bytes for `nodeId`. */
+    /** Erase the stored config-memory blob for `nodeId`. */
     clear(nodeId) {
-        this._storage.removeItem(this._key(nodeId));
+        this._store.remove(nodeId, this._subKey);
     }
 
-    _key(nodeId) {
-        return this._prefix + nodeId.toString(16).padStart(12, '0');
+    _loadOrInit(nodeId) {
+        return this._store.getBytes(nodeId, this._subKey) ?? new Uint8Array(this._size);
     }
 
-    _load(nodeId) {
-        const encoded = this._storage.getItem(this._key(nodeId));
-        if (!encoded) return new Uint8Array(this._size);
-        const raw = atob(encoded);
-        const out = new Uint8Array(Math.max(this._size, raw.length));
-        for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-        return out;
-    }
-
-    _save(nodeId, bytes) {
-        let s = '';
-        for (const b of bytes) s += String.fromCharCode(b);
-        this._storage.setItem(this._key(nodeId), btoa(s));
+    _growTo(bytes, size) {
+        const grown = new Uint8Array(size);
+        grown.set(bytes);
+        return grown;
     }
 }

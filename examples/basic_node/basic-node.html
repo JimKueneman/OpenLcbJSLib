@@ -29,7 +29,7 @@ console to see the full protocol trace.</p>
 <section>
     <div class="row">
         <label for="url">WebSocket URL</label>
-        <input id="url" type="text" value="ws://localhost:12022/">
+        <input id="url" type="text" value="ws://localhost:12080/lcc/hub/">
     </div>
     <div class="row">
         <label for="nodeId">Node ID (hex)</label>
@@ -75,16 +75,34 @@ import {
     OpenLcb, WebSocketTransport,
     TransportBusyError,
 } from '../../src/index.js';
+import { LocalStorageConfigMemory } from '../../src/storage/localstorage-config-memory.js';
 import {
     NODE_ID,
     OpenLcbUserConfig_node_parameters,
 } from './openlcb_user_config.js';
+
+// Persist Configuration Memory across reloads.  Size derives from the node's
+// declared 0xFD address space so the two stay in sync.
+const cfgMem = new LocalStorageConfigMemory({
+    size: OpenLcbUserConfig_node_parameters.addressSpaceConfigMemory.highestAddress + 1,
+});
 
 const $ = (id) => document.getElementById(id);
 
 // Pre-fill the form's Node ID input from the config-file default.  The user
 // can still override it before clicking Connect.
 $('nodeId').value = NODE_ID.toString(16).padStart(12, '0');
+
+// When this page is served by JMRI on a LAN host (e.g. http://layout.local:12080/),
+// default the WebSocket URL to a same-origin path.  Skip localhost — there the
+// page is typically served by a dev server on a different port than JMRI, so
+// the static default (ws://localhost:12080/lcc/hub) is a better starting point.
+if ((location.protocol === 'http:' || location.protocol === 'https:')
+    && location.hostname !== 'localhost'
+    && location.hostname !== '127.0.0.1') {
+    const wsScheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    $('url').value = `${wsScheme}//${location.host}/lcc/hub/`;
+}
 const log = (msg) => {
     const t = new Date().toISOString().slice(11, 23);
     const el = $('log');
@@ -149,9 +167,23 @@ $('connect').addEventListener('click', async () => {
             onPcEventReport: (n, eventId) => {
                 log(`PCER received: ${eventId.toString(16)}`);
             },
-            // Minimal configuration memory: return zeros, accept any write.
-            onConfigMemRead:  (n, addr, count, buf) => { buf.fill(0); return count; },
-            onConfigMemWrite: (n, addr, count) => count,
+            // Configuration Memory persists in localStorage, keyed by NodeID.
+            // ACDI User name/description (offsets 0..126 of space 0xFD) and
+            // every CDI-defined byte ride this same path.
+            onConfigMemRead:  cfgMem.read.bind(cfgMem),
+            onConfigMemWrite: cfgMem.write.bind(cfgMem),
+
+            // Memory Configuration ops — fired by the WASM bridge after the
+            // library has already sent the datagram-OK reply.  Per spec:
+            //   §4.23 Update Complete (0xA8): notify only, reset optional
+            //   §4.24 Reset/Reboot   (0xA9): SHALL reboot to power-on state
+            //   §4.25 Factory Reset  (0xAA): restore config to defaults
+            onUpdateComplete: (n) => log(`config update complete on ${n.id.toString(16)}`),
+            onReboot:         (n) => { log(`reset/reboot received for ${n.id.toString(16)}`); softReboot(); },
+            onFactoryReset:   (n) => {
+                log(`factory reset received for ${n.id.toString(16)} — clearing storage`);
+                cfgMem.clear(n.id);
+            },
         });
 
         log(`node allocated: ${node.id.toString(16)}`);
@@ -168,6 +200,20 @@ $('disconnect').addEventListener('click', async () => {
         log('stopped');
     }
 });
+
+// Soft reboot — discards the WASM module and re-instantiates a fresh stack,
+// keeping the WebSocket open.  Triggered from the Reset/Reboot Memory Config
+// op.  The node handle survives; its loginComplete promise is replaced.
+async function softReboot() {
+    if (!openlcb) return;
+    try {
+        await openlcb.reboot();
+        // onLoginComplete fires for the fresh node on the existing transport.
+    } catch (e) {
+        log(`reboot failed: ${e?.message ?? e}`);
+        setState('disconnected');
+    }
+}
 
 $('sendPcer').addEventListener('click', () => {
     const eventHex = $('event').value.trim();

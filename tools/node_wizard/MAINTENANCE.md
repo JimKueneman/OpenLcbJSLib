@@ -292,7 +292,7 @@ focus/selection behaviour, descriptor warning badge logic, node type differences
 (Train vs Train Controller), and the step-by-step process for adding a new sidebar
 section — is in:
 
-[`documentation/maintenance_instructions.md`](documentation/maintenance_instructions.md)
+[`documentation/architecture.md`](documentation/architecture.md)
 
 ---
 

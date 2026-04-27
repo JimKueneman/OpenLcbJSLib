@@ -27,7 +27,7 @@
 
 <div class="card">
     <h2>Connection</h2>
-    <div class="frow"><label>WS URL</label><input id="url" type="text" value="ws://localhost:12022/"></div>
+    <div class="frow"><label>WS URL</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
     <div class="frow"><label>CS Base ID</label><input id="baseId" type="text" value="050101010800"></div>
     <div class="bar">
         <button class="btn primary" id="btnConnect">Connect</button>
@@ -111,6 +111,20 @@
 
 </main>
 
+<script>
+// When this page is served by JMRI on a LAN host (e.g. http://layout.local:12080/),
+// default the WebSocket URL to a same-origin path.  Skip localhost — there the
+// page is typically served by a dev server on a different port than JMRI, so
+// the static default (ws://localhost:12080/lcc/hub/) is a better starting point.
+(() => {
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+    const u = document.getElementById('url');
+    if (!u) return;
+    const wsScheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    u.value = `${wsScheme}//${location.host}/lcc/hub/`;
+})();
+</script>
 <script type="module" src="command-station.js"></script>
 </body>
 </html>

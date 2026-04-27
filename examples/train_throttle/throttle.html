@@ -21,7 +21,7 @@
 <section class="screen active" data-screen="connect">
     <div class="card">
         <h2>Transport</h2>
-        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12022/"></div>
+        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
         <div class="row"><label for="nodeId">Throttle Node ID</label><input id="nodeId" type="text" value="050101010701"></div>
         <div class="bar-actions">
             <button class="btn primary grow" id="btnConnect">Connect</button>
@@ -33,47 +33,74 @@
 
 <!-- =================== ROSTER =================== -->
 <section class="screen" data-screen="roster">
-    <div class="card">
-        <h2>Find a train</h2>
-        <div class="row"><label for="q">Address or name</label><input id="q" type="text" placeholder="e.g. 415" inputmode="numeric"></div>
-        <div>
-            <div class="kicker" style="margin-bottom:6px">Flags</div>
-            <div class="chip-group" id="flagGroup">
-                <span class="chip" data-flag="exact">Exact</span>
-                <span class="chip" data-flag="addr">Addr only</span>
-                <span class="chip" data-flag="alloc">Allocate</span>
-            </div>
+    <div class="card" id="findCard">
+        <div class="card-head">
+            <h2>Find a train</h2>
+            <button class="link-btn" id="btnToggleHelp" type="button" title="Show or hide the inline help text">Hide help</button>
         </div>
-        <div>
+        <div class="row">
+            <label for="q">Search query</label>
+            <input id="q" type="text" inputmode="numeric" value="3" placeholder="e.g. 415, or 47 415, or empty for all">
+        </div>
+        <div class="hint-inline" id="hintQuery">—</div>
+
+        <div class="kicker" style="margin-bottom:6px">Flags</div>
+        <div class="chip-group" id="flagGroup">
+            <span class="chip" data-flag="exact" title="Match this number exactly. Without it, '47' would also find 470, 471, etc.">Exact</span>
+            <span class="chip" data-flag="addr" title="Search by DCC address only, not by the train's name.">Addr only</span>
+            <span class="chip" data-flag="alloc" title="If no train matches, create a new one at this address.">Allocate</span>
+            <span class="chip" data-dcc="long" id="chipForceLong" title="DCC: force 14-bit (long) address. Shown only with Any or DCC protocol.">Force long</span>
+        </div>
+        <div class="hint-inline" id="hintFlags">—</div>
+
+        <details class="advanced">
+            <summary>Advanced — track protocol &amp; rail options</summary>
+
             <div class="kicker" style="margin-bottom:6px">Track protocol</div>
             <div class="chip-group" id="protoGroup">
-                <span class="chip" data-proto="any">Any</span>
-                <span class="chip" data-proto="openlcb">OpenLCB</span>
-                <span class="chip" data-proto="mfx">MFX</span>
-                <span class="chip" data-proto="mm">MM</span>
-                <span class="chip on" data-proto="dcc">DCC</span>
+                <span class="chip on" data-proto="any" title="Any/Default — match any protocol">Any</span>
+                <span class="chip" data-proto="openlcb" title="Native OpenLCB Train Node">OpenLCB</span>
+                <span class="chip" data-proto="mfx" title="MFX / M4 track protocol">MFX</span>
+                <span class="chip" data-proto="mm" title="Märklin-Motorola family">MM</span>
+                <span class="chip" data-proto="dcc" title="NMRA DCC">DCC</span>
             </div>
-        </div>
-        <div id="dccOptions">
-            <div class="kicker" style="margin-bottom:6px">DCC options</div>
-            <div class="chip-group" id="dccFlagGroup">
-                <span class="chip on" data-dcc="long">Long addr</span>
+            <div class="hint-inline" id="hintProto">—</div>
+
+            <!-- DCC sub-options: visible when track protocol is Any or DCC.
+                 (Force long lives in the Flags row above for quick access.) -->
+            <div id="dccStepsSection" hidden>
+                <div class="kicker" style="margin:8px 0 6px">DCC: speed steps</div>
+                <div class="chip-group" id="stepGroup">
+                    <span class="chip on" data-step="0" title="Default/Any — let the train decide">Default</span>
+                    <span class="chip" data-step="14" title="DCC 14 speed steps">14</span>
+                    <span class="chip" data-step="28" title="DCC 28 speed steps">28</span>
+                    <span class="chip" data-step="128" title="DCC 128 speed steps">128</span>
+                </div>
+                <div class="hint-inline" id="hintDccSteps">—</div>
             </div>
-            <div class="kicker" style="margin:8px 0 6px">DCC speed steps</div>
-            <div class="chip-group" id="stepGroup">
-                <span class="chip" data-step="14">14</span>
-                <span class="chip" data-step="28">28</span>
-                <span class="chip on" data-step="128">128</span>
+
+            <!-- MM sub-options: visible when track protocol is Any or MM -->
+            <div id="mmSection" hidden>
+                <div class="kicker" style="margin-bottom:6px">MM: version</div>
+                <div class="chip-group" id="mmGroup">
+                    <span class="chip on" data-mm="any">Any</span>
+                    <span class="chip" data-mm="v1">v1 (14 steps + F0)</span>
+                    <span class="chip" data-mm="v2">v2 (dir + F0-F4)</span>
+                    <span class="chip" data-mm="v2ext">v2 ext (F5-F8 follow)</span>
+                </div>
+                <div class="hint-inline" id="hintMm">—</div>
             </div>
-        </div>
-        <div id="mmOptions" hidden>
-            <div class="kicker" style="margin-bottom:6px">MM version</div>
-            <div class="chip-group" id="mmGroup">
-                <span class="chip on" data-mm="any">Any</span>
-                <span class="chip" data-mm="v1">v1 (14 steps + F0)</span>
-                <span class="chip" data-mm="v2">v2 (dir + F0-F4)</span>
-                <span class="chip" data-mm="v2ext">v2 ext (F5-F8)</span>
-            </div>
+        </details>
+
+        <!-- Result is now appended to the Flags hint block (after Force long).
+             The element below is kept (and updated) so error paths and any
+             external code that read it still work. -->
+        <div class="hint-inline result" id="hintResult" hidden>—</div>
+        <!-- Debug-only event preview.  Hidden by default; remove the
+             `hidden` attribute (or unhide via DevTools) to see what's about
+             to go on the wire. -->
+        <div class="kicker" id="eventPreviewRow" hidden style="margin-top:6px; font-family:Menlo,Consolas,monospace; font-size:0.85em">
+            Event: <span id="eventPreview">—</span> · Flags: <span id="flagPreview">—</span>
         </div>
         <div class="bar-actions">
             <button class="btn primary grow" id="btnSearch">Search</button>
@@ -163,6 +190,20 @@
     <div id="log"></div>
 </details>
 
+<script>
+// When this page is served by JMRI on a LAN host (e.g. http://layout.local:12080/),
+// default the WebSocket URL to a same-origin path.  Skip localhost — there the
+// page is typically served by a dev server on a different port than JMRI, so
+// the static default (ws://localhost:12080/lcc/hub/) is a better starting point.
+(() => {
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+    const u = document.getElementById('url');
+    if (!u) return;
+    const wsScheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    u.value = `${wsScheme}//${location.host}/lcc/hub/`;
+})();
+</script>
 <script type="module" src="throttle.js"></script>
 </body>
 </html>

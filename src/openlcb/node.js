@@ -343,6 +343,15 @@ export class OpenLcbNode {
         }
     }
 
+    /** @internal — called by runtime.reboot() before re-materializing on
+     *  the fresh WASM module.  Replaces loginComplete so callers can
+     *  `await` the post-reboot login. */
+    _resetForReboot() {
+        this._api = null;
+        this._loginResolve = null;
+        this.loginComplete = new Promise((resolve) => { this._loginResolve = resolve; });
+    }
+
     // ------------------------------------------------------------------------
     // Event sends
     // ------------------------------------------------------------------------

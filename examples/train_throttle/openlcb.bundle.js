@@ -534,212 +534,227 @@ var OpenLCB = (() => {
         return Module.onConfigMemWrite(nid, $2 >>> 0, $3, $4) | 0;
       }
       return 0;
-    }, 2720: ($0, $1, $2, $3, $4, $5) => {
+    }, 2720: ($0, $1) => {
+      if (Module.onReboot) {
+        var nid = BigInt($0) | BigInt($1) << 32n;
+        Module.onReboot(nid);
+      }
+    }, 2815: ($0, $1) => {
+      if (Module.onFactoryReset) {
+        var nid = BigInt($0) | BigInt($1) << 32n;
+        Module.onFactoryReset(nid);
+      }
+    }, 2922: ($0, $1) => {
+      if (Module.onUpdateComplete) {
+        var nid = BigInt($0) | BigInt($1) << 32n;
+        Module.onUpdateComplete(nid);
+      }
+    }, 3033: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onOptionalInteractionRejected) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var src_id = BigInt($2) | BigInt($3) << 32n;
         Module.onOptionalInteractionRejected(nid, src_id, $4, $5);
       }
-    }, 2920: ($0, $1, $2, $3, $4, $5) => {
+    }, 3233: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onTerminateDueToError) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var src_id = BigInt($2) | BigInt($3) << 32n;
         Module.onTerminateDueToError(nid, src_id, $4, $5);
       }
-    }, 3104: ($0, $1, $2, $3, $4) => {
+    }, 3417: ($0, $1, $2, $3, $4) => {
       if (Module.onVerifiedNodeId) {
         var nid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var sid = BigInt($2 >>> 0) | BigInt($3 >>> 0) << 32n;
         var alias = $4 & 4095;
         Module.onVerifiedNodeId(nid, sid, alias);
       }
-    }, 3319: () => {
+    }, 3632: () => {
       if (Module.on100msTimer) {
         Module.on100msTimer();
       }
-    }, 3375: ($0, $1) => {
+    }, 3688: ($0, $1) => {
       if (Module.onLoginComplete) {
         Module.onLoginComplete(BigInt($0) | BigInt($1) << 32n);
       }
-    }, 3469: ($0, $1, $2, $3, $4, $5) => {
+    }, 3782: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onConsumedEventIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumedEventIdentified(nid, $4, eid, $5);
       }
-    }, 3655: ($0, $1, $2, $3, $4) => {
+    }, 3968: ($0, $1, $2, $3, $4) => {
       if (Module.onConsumedEventPcer) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumedEventPcer(nid, $4, eid);
       }
-    }, 3825: ($0, $1, $2, $3) => {
+    }, 4138: ($0, $1, $2, $3) => {
       if (Module.onEventLearn) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onEventLearn(nid, eid);
       }
-    }, 3977: ($0, $1, $2, $3) => {
+    }, 4290: ($0, $1, $2, $3) => {
       if (Module.onConsumerRangeIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerRangeIdentified(nid, eid);
       }
-    }, 4155: ($0, $1, $2, $3) => {
+    }, 4468: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedUnknown) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedUnknown(nid, eid);
       }
-    }, 4337: ($0, $1, $2, $3) => {
+    }, 4650: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedSet) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedSet(nid, eid);
       }
-    }, 4511: ($0, $1, $2, $3) => {
+    }, 4824: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedClear) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedClear(nid, eid);
       }
-    }, 4689: ($0, $1, $2, $3) => {
+    }, 5002: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedReserved) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedReserved(nid, eid);
       }
-    }, 4873: ($0, $1, $2, $3) => {
+    }, 5186: ($0, $1, $2, $3) => {
       if (Module.onProducerRangeIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerRangeIdentified(nid, eid);
       }
-    }, 5051: ($0, $1, $2, $3) => {
+    }, 5364: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedUnknown) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedUnknown(nid, eid);
       }
-    }, 5233: ($0, $1, $2, $3) => {
+    }, 5546: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedSet) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedSet(nid, eid);
       }
-    }, 5407: ($0, $1, $2, $3) => {
+    }, 5720: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedClear) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedClear(nid, eid);
       }
-    }, 5585: ($0, $1, $2, $3) => {
+    }, 5898: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedReserved) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedReserved(nid, eid);
       }
-    }, 5769: ($0, $1, $2, $3) => {
+    }, 6082: ($0, $1, $2, $3) => {
       if (Module.onPcEventReport) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onPcEventReport(nid, eid);
       }
-    }, 5927: ($0, $1, $2, $3, $4, $5) => {
+    }, 6240: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onPcEventReportWithPayload) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onPcEventReportWithPayload(nid, eid, $4, $5);
       }
-    }, 6115: ($0, $1, $2, $3) => {
+    }, 6428: ($0, $1, $2, $3) => {
       if (Module.onBroadcastTimeChanged) {
         var cid = BigInt($0) | BigInt($1) << 32n;
         Module.onBroadcastTimeChanged(cid, $2, $3);
       }
-    }, 6246: ($0, $1, $2, $3, $4, $5) => {
+    }, 6559: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onBroadcastTimeReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastTimeReceived(nid, cid, $4, $5);
       }
-    }, 6428: ($0, $1, $2, $3, $4, $5) => {
+    }, 6741: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onBroadcastDateReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastDateReceived(nid, cid, $4, $5);
       }
-    }, 6610: ($0, $1, $2, $3, $4) => {
+    }, 6923: ($0, $1, $2, $3, $4) => {
       if (Module.onBroadcastYearReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastYearReceived(nid, cid, $4);
       }
-    }, 6788: ($0, $1, $2, $3, $4) => {
+    }, 7101: ($0, $1, $2, $3, $4) => {
       if (Module.onBroadcastRateReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastRateReceived(nid, cid, $4);
       }
-    }, 6966: ($0, $1, $2, $3) => {
+    }, 7279: ($0, $1, $2, $3) => {
       if (Module.onBroadcastClockStarted) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastClockStarted(nid, cid);
       }
-    }, 7140: ($0, $1, $2, $3) => {
+    }, 7453: ($0, $1, $2, $3) => {
       if (Module.onBroadcastClockStopped) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastClockStopped(nid, cid);
       }
-    }, 7314: ($0, $1, $2, $3) => {
+    }, 7627: ($0, $1, $2, $3) => {
       if (Module.onBroadcastDateRollover) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastDateRollover(nid, cid);
       }
-    }, 7488: ($0, $1, $2) => {
+    }, 7801: ($0, $1, $2) => {
       if (Module.onTrainSpeedChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainSpeedChanged(nid, $2);
       }
-    }, 7609: ($0, $1, $2, $3) => {
+    }, 7922: ($0, $1, $2, $3) => {
       if (Module.onTrainFunctionChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainFunctionChanged(nid, $2 >>> 0, $3);
       }
-    }, 7746: ($0, $1, $2) => {
+    }, 8059: ($0, $1, $2) => {
       if (Module.onTrainEmergencyEntered) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainEmergencyEntered(nid, $2);
       }
-    }, 7875: ($0, $1, $2) => {
+    }, 8188: ($0, $1, $2) => {
       if (Module.onTrainEmergencyExited) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainEmergencyExited(nid, $2);
       }
-    }, 8002: ($0, $1, $2, $3) => {
+    }, 8315: ($0, $1, $2, $3) => {
       if (Module.onTrainControllerAssigned) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainControllerAssigned(nid, cid);
       }
-    }, 8180: ($0, $1) => {
+    }, 8493: ($0, $1) => {
       if (Module.onTrainControllerReleased) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainControllerReleased(nid);
       }
-    }, 8309: ($0, $1) => {
+    }, 8622: ($0, $1) => {
       if (Module.onTrainListenerChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainListenerChanged(nid);
       }
-    }, 8432: ($0, $1) => {
+    }, 8745: ($0, $1) => {
       if (Module.onTrainHeartbeatTimeout) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainHeartbeatTimeout(nid);
       }
-    }, 8557: ($0, $1, $2, $3, $4, $5) => {
+    }, 8870: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onTrainControllerAssignRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var curr = BigInt($2) | BigInt($3) << 32n;
@@ -747,75 +762,75 @@ var OpenLCB = (() => {
         return Module.onTrainControllerAssignRequest(nid, curr, rq) ? 1 : 0;
       }
       return 1;
-    }, 8819: ($0, $1, $2, $3) => {
+    }, 9132: ($0, $1, $2, $3) => {
       if (Module.onTrainControllerChangedRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var new_ctrl = BigInt($2) | BigInt($3) << 32n;
         return Module.onTrainControllerChangedRequest(nid, new_ctrl) ? 1 : 0;
       }
       return 1;
-    }, 9044: ($0, $1, $2, $3, $4, $5) => {
+    }, 9357: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onTrainQuerySpeedsReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainQuerySpeedsReply(nid, $2, $3, $4, $5);
       }
-    }, 9185: ($0, $1, $2, $3) => {
+    }, 9498: ($0, $1, $2, $3) => {
       if (Module.onTrainQueryFunctionReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainQueryFunctionReply(nid, $2 >>> 0, $3);
       }
-    }, 9328: ($0, $1, $2, $3, $4) => {
+    }, 9641: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainControllerAssignReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cur = BigInt($3) | BigInt($4) << 32n;
         Module.onTrainControllerAssignReply(nid, $2, cur);
       }
-    }, 9516: ($0, $1, $2, $3, $4) => {
+    }, 9829: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainControllerQueryReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($3) | BigInt($4) << 32n;
         Module.onTrainControllerQueryReply(nid, $2, cid);
       }
-    }, 9702: ($0, $1, $2) => {
+    }, 10015: ($0, $1, $2) => {
       if (Module.onTrainControllerChangedNotifyReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainControllerChangedNotifyReply(nid, $2);
       }
-    }, 9855: ($0, $1, $2, $3, $4) => {
+    }, 10168: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainListenerAttachReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainListenerAttachReply(nid, lnode, $4);
       }
-    }, 10043: ($0, $1, $2, $3, $4) => {
+    }, 10356: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainListenerDetachReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainListenerDetachReply(nid, lnode, $4);
       }
-    }, 10231: ($0, $1, $2, $3, $4, $5, $6) => {
+    }, 10544: ($0, $1, $2, $3, $4, $5, $6) => {
       if (Module.onTrainListenerQueryReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($5) | BigInt($6) << 32n;
         Module.onTrainListenerQueryReply(nid, $2, $3, $4, lnode);
       }
-    }, 10425: ($0, $1, $2) => {
+    }, 10738: ($0, $1, $2) => {
       if (Module.onTrainReserveReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainReserveReply(nid, $2);
       }
-    }, 10546: ($0, $1, $2) => {
+    }, 10859: ($0, $1, $2) => {
       if (Module.onTrainHeartbeatRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainHeartbeatRequest(nid, $2 >>> 0);
       }
-    }, 10681: ($0, $1, $2, $3) => {
+    }, 10994: ($0, $1, $2, $3) => {
       if (Module.onTrainSearchMatched) {
         var nid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var eid = BigInt($2 >>> 0) | BigInt($3 >>> 0) << 32n;
         Module.onTrainSearchMatched(nid, eid);
       }
-    }, 10873: ($0, $1) => {
+    }, 11186: ($0, $1) => {
       if (Module.onTrainSearchNoMatch) {
         var eid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var v = Module.onTrainSearchNoMatch(eid);
@@ -823,31 +838,31 @@ var OpenLCB = (() => {
         if (typeof v === "number") return v;
       }
       return 0;
-    }, 11104: ($0, $1, $2, $3, $4) => {
+    }, 11417: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainSearchReply) {
         var sid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var alias = $2 & 4095;
         var eid = BigInt($3 >>> 0) | BigInt($4 >>> 0) << 32n;
         Module.onTrainSearchReply(sid, alias, eid);
       }
-    }, 11323: ($0) => {
+    }, 11636: ($0) => {
       if (Module.onStreamInitiateRequest) {
         return Module.onStreamInitiateRequest($0) ? 1 : 0;
       }
       return 1;
-    }, 11428: ($0) => {
+    }, 11741: ($0) => {
       if (Module.onStreamInitiateReply) {
         Module.onStreamInitiateReply($0);
       }
-    }, 11504: ($0) => {
+    }, 11817: ($0) => {
       if (Module.onStreamDataReceived) {
         Module.onStreamDataReceived($0);
       }
-    }, 11578: ($0) => {
+    }, 11891: ($0) => {
       if (Module.onStreamDataProceed) {
         Module.onStreamDataProceed($0);
       }
-    }, 11650: ($0) => {
+    }, 11963: ($0) => {
       if (Module.onStreamComplete) {
         Module.onStreamComplete($0);
       }
@@ -2025,6 +2040,16 @@ var OpenLCB = (() => {
         this._loginResolve = null;
       }
     }
+    /** @internal — called by runtime.reboot() before re-materializing on
+     *  the fresh WASM module.  Replaces loginComplete so callers can
+     *  `await` the post-reboot login. */
+    _resetForReboot() {
+      this._api = null;
+      this._loginResolve = null;
+      this.loginComplete = new Promise((resolve) => {
+        this._loginResolve = resolve;
+      });
+    }
     // ------------------------------------------------------------------------
     // Event sends
     // ------------------------------------------------------------------------
@@ -2219,7 +2244,13 @@ var OpenLCB = (() => {
       onStreamComplete: (statePtr) => dispatcher.onStreamComplete(statePtr),
       // Config memory — runtime delegates to per-node callback
       onConfigMemRead: (nid, addr, count, ptr) => dispatcher.onConfigMemRead(nid, addr, count, ptr),
-      onConfigMemWrite: (nid, addr, count, ptr) => dispatcher.onConfigMemWrite(nid, addr, count, ptr)
+      onConfigMemWrite: (nid, addr, count, ptr) => dispatcher.onConfigMemWrite(nid, addr, count, ptr),
+      // Memory-config operations — notification-only; library has already
+      // sent the datagram-OK reply by the time these fire.  The application
+      // owns the action (clear storage, soft-reboot, refresh from disk).
+      onReboot: (nid) => dispatch(nid, "onReboot"),
+      onFactoryReset: (nid) => dispatch(nid, "onFactoryReset"),
+      onUpdateComplete: (nid) => dispatch(nid, "onUpdateComplete")
     };
   }
   function createApi(Module) {
@@ -2532,6 +2563,7 @@ var OpenLCB = (() => {
         onConfigMemRead: (nid, addr, count, ptr) => self._onConfigMemRead(nid, addr, count, ptr),
         onConfigMemWrite: (nid, addr, count, ptr) => self._onConfigMemWrite(nid, addr, count, ptr)
       };
+      self._dispatcher = dispatcher;
       let Module;
       try {
         Module = await openlcb_core_default(createHooks(dispatcher));
@@ -2609,6 +2641,44 @@ var OpenLCB = (() => {
       this._running = false;
       this._stopPump();
       await Promise.resolve(this._transport.disconnect());
+    }
+    /**
+     * Soft-reboot the OpenLCB stack: discard the WASM module, instantiate
+     * a fresh one, and replay every previously-created node onto it.  The
+     * transport is NOT touched — the existing connection (e.g. WebSocket
+     * to JMRI) stays open across the reboot.  Node handle objects survive;
+     * each one's loginComplete promise is replaced so callers can `await`
+     * the post-reboot login.
+     *
+     * Use this from `onReboot` / `onFactoryReset` callbacks to honor a
+     * Memory Configuration Reset/Reboot or Factory Reset datagram with
+     * spec-correct "fresh node, same medium" semantics.
+     */
+    async reboot() {
+      if (!this._dispatcher) throw new Error("reboot() before create() resolved");
+      this._stopPump();
+      const specs = [];
+      for (const node of this._nodes.values()) {
+        specs.push({ node, params: node.parameters, callbacks: node._callbacks });
+      }
+      this._Module = null;
+      this._api = null;
+      let Module;
+      try {
+        Module = await openlcb_core_default(createHooks(this._dispatcher));
+      } catch (e) {
+        throw new WasmLoadError("WASM factory failed during reboot", { cause: e });
+      }
+      this._Module = Module;
+      this._api = createApi(Module);
+      this._api.initialize();
+      Object.assign(this, buildCodecNamespaces(this._api, Module));
+      for (const { node, params, callbacks } of specs) {
+        node._resetForReboot();
+        this._materializeNode(node.id, params, callbacks);
+        node._bindApi(this._api);
+      }
+      this._startPump();
     }
     // ------------------------------------------------------------------------
     // Pump — drains WASM state machine under a time budget per slice.
@@ -2861,67 +2931,113 @@ var OpenLCB = (() => {
     }
   };
 
-  // src/storage/localstorage-config-memory.js
-  var LocalStorageConfigMemory = class {
+  // src/storage/local-store.js
+  var LocalStore = class {
     /**
      * @param {Object} [opts]
-     * @param {string} [opts.keyPrefix='openlcb-cfg:']
-     * @param {number} [opts.size=1024]  capacity (bytes) allocated on first write
+     * @param {string} [opts.keyPrefix='openlcb:']
      * @param {Storage} [opts.storage]  override for testing (default: window.localStorage)
      */
     constructor(opts = {}) {
-      this._prefix = opts.keyPrefix ?? "openlcb-cfg:";
-      this._size = opts.size ?? 1024;
+      this._prefix = opts.keyPrefix ?? "openlcb:";
       this._storage = opts.storage ?? (typeof localStorage !== "undefined" ? localStorage : null);
       if (!this._storage) {
-        throw new Error("LocalStorageConfigMemory: no localStorage available (pass opts.storage)");
+        throw new Error("LocalStore: no localStorage available (pass opts.storage)");
       }
     }
-    /** Matches OpenLcbConfig's `configMemoryRead` signature. */
+    /** Returns the stored bytes, or null if the key is unset. */
+    getBytes(nodeId, key) {
+      const encoded = this._storage.getItem(this._fullKey(nodeId, key));
+      if (encoded == null) return null;
+      const raw = atob(encoded);
+      const out = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+    setBytes(nodeId, key, bytes) {
+      let s = "";
+      for (const b of bytes) s += String.fromCharCode(b);
+      this._storage.setItem(this._fullKey(nodeId, key), btoa(s));
+    }
+    /** Returns the parsed JSON value, or null if the key is unset. */
+    getJson(nodeId, key) {
+      const s = this._storage.getItem(this._fullKey(nodeId, key));
+      return s == null ? null : JSON.parse(s);
+    }
+    setJson(nodeId, key, value) {
+      this._storage.setItem(this._fullKey(nodeId, key), JSON.stringify(value));
+    }
+    remove(nodeId, key) {
+      this._storage.removeItem(this._fullKey(nodeId, key));
+    }
+    /** Wipes every key stored under this node ID. */
+    clearNode(nodeId) {
+      const prefix = this._nodePrefix(nodeId);
+      const toRemove = [];
+      for (let i = 0; i < this._storage.length; i++) {
+        const k = this._storage.key(i);
+        if (k != null && k.startsWith(prefix)) toRemove.push(k);
+      }
+      for (const k of toRemove) this._storage.removeItem(k);
+    }
+    _nodePrefix(nodeId) {
+      return this._prefix + BigInt(nodeId).toString(16).padStart(12, "0") + ":";
+    }
+    _fullKey(nodeId, key) {
+      return this._nodePrefix(nodeId) + key;
+    }
+  };
+
+  // src/storage/localstorage-config-memory.js
+  var DEFAULT_KEY = "config-mem";
+  var LocalStorageConfigMemory = class {
+    /**
+     * @param {Object} [opts]
+     * @param {number} [opts.size=1024]      capacity (bytes) — should match
+     *                                       node's addressSpaceConfigMemory.highestAddress
+     * @param {LocalStore} [opts.store]      backing KV (default: new LocalStore())
+     * @param {string} [opts.keyPrefix]      forwarded to LocalStore if `store` is omitted
+     * @param {Storage} [opts.storage]       forwarded to LocalStore if `store` is omitted
+     * @param {string} [opts.subKey]         per-node sub-key (default: 'config-mem')
+     */
+    constructor(opts = {}) {
+      this._size = opts.size ?? 1024;
+      this._subKey = opts.subKey ?? DEFAULT_KEY;
+      this._store = opts.store ?? new LocalStore({
+        keyPrefix: opts.keyPrefix,
+        storage: opts.storage
+      });
+    }
+    /** Matches the `onConfigMemRead` callback signature. */
     read(node, address, count, buffer) {
-      const bytes = this._load(node.id);
+      const bytes = this._loadOrInit(node.id);
       for (let i = 0; i < count; i++) {
         buffer[i] = bytes[address + i] ?? 0;
       }
       return count;
     }
-    /** Matches OpenLcbConfig's `configMemoryWrite` signature. */
+    /** Matches the `onConfigMemWrite` callback signature. */
     write(node, address, count, buffer) {
-      const bytes = this._load(node.id);
-      if (address + count > bytes.length) {
-        const grown = new Uint8Array(address + count);
-        grown.set(bytes);
-        bytes.set(bytes.subarray(0, bytes.length), 0);
-        this._save(node.id, grown);
-        for (let i = 0; i < count; i++) grown[address + i] = buffer[i];
-        this._save(node.id, grown);
-        return count;
-      }
+      const bytes = this._loadOrInit(node.id);
+      const need = address + count;
+      const target = need > bytes.length ? this._growTo(bytes, need) : bytes;
       for (let i = 0; i < count; i++) {
-        bytes[address + i] = buffer[i];
+        target[address + i] = buffer[i];
       }
-      this._save(node.id, bytes);
+      this._store.setBytes(node.id, this._subKey, target);
       return count;
     }
-    /** Clear all stored bytes for `nodeId`. */
+    /** Erase the stored config-memory blob for `nodeId`. */
     clear(nodeId) {
-      this._storage.removeItem(this._key(nodeId));
+      this._store.remove(nodeId, this._subKey);
     }
-    _key(nodeId) {
-      return this._prefix + nodeId.toString(16).padStart(12, "0");
+    _loadOrInit(nodeId) {
+      return this._store.getBytes(nodeId, this._subKey) ?? new Uint8Array(this._size);
     }
-    _load(nodeId) {
-      const encoded = this._storage.getItem(this._key(nodeId));
-      if (!encoded) return new Uint8Array(this._size);
-      const raw = atob(encoded);
-      const out = new Uint8Array(Math.max(this._size, raw.length));
-      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-      return out;
-    }
-    _save(nodeId, bytes) {
-      let s = "";
-      for (const b of bytes) s += String.fromCharCode(b);
-      this._storage.setItem(this._key(nodeId), btoa(s));
+    _growTo(bytes, size) {
+      const grown = new Uint8Array(size);
+      grown.set(bytes);
+      return grown;
     }
   };
   return __toCommonJS(index_exports);

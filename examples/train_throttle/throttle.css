@@ -98,7 +98,79 @@ main { flex: 1; display: flex; flex-direction: column; }
     font-size: 0.85rem; cursor: pointer; user-select: none;
 }
 .chip.on { background: rgba(34, 211, 238, 0.15); border-color: var(--accent); color: var(--accent); }
+.chip.disabled { opacity: 0.4; cursor: not-allowed; }
+.chip.disabled.on { background: var(--bg-3); border-color: var(--line); color: inherit; }
+.chip[hidden] { display: none; }   /* override .chip's display: inline-flex */
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* search hints — pinned beneath each control */
+.hint-inline {
+    font-size: 0.8em;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: 4px 0 12px;
+    font-style: italic;
+    min-height: 1.3em;
+    white-space: pre-line;   /* render \n in textContent as line breaks */
+}
+.hint-inline.result {
+    font-style: normal;
+    font-size: 0.85em;
+    color: var(--text);
+    opacity: 0.85;
+}
+/* Per-flag block styling: each line is its own block; the label prefix
+ * is dimmed so it reads as a tag rather than running into the body. */
+.hint-inline .flag-line { margin-bottom: 6px; }
+.hint-inline .flag-line:last-child { margin-bottom: 0; }
+.hint-inline .flag-name {
+    font-style: normal;
+    font-weight: 600;
+    opacity: 0.5;
+    margin-right: 2px;
+}
+
+/* Advanced disclosure — collapsed by default; user opens to reveal
+ * power-user options like Force long and Speed steps. */
+.advanced {
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+.advanced summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85em;
+    font-weight: 600;
+    padding: 4px 0;
+    user-select: none;
+    list-style: none;
+}
+.advanced summary::-webkit-details-marker { display: none; }
+.advanced summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.15s;
+}
+.advanced[open] > summary::before { content: '▾ '; }
+.advanced summary:hover { color: var(--text); }
+.advanced[open] > summary { margin-bottom: 8px; }
+
+/* Help toggle on the Find a Train card head — hides every .hint-inline
+ * underneath when active, for users who've outgrown the tutorial text. */
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.card-head h2 { margin: 0; }
+.link-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.85em;
+    cursor: pointer;
+    padding: 4px 0;
+    user-select: none;
+}
+.link-btn:hover { color: var(--text); text-decoration: underline; }
+.card.hide-help .hint-inline { display: none; }
 
 /* ---------- roster list ---------- */
 .roster { display: flex; flex-direction: column; gap: 8px; }

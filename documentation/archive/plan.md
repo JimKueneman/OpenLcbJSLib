@@ -1,3 +1,7 @@
+> **HISTORICAL — archived.** This was the original plan to port OpenLcbCLib to pure JavaScript. That approach was abandoned in favour of the WASM-wrapper strategy (see [working_plan.md](working_plan.md)) and then implemented; the file layout, API shapes, and module names sketched below do not reflect shipped code. Kept for context only.
+
+---
+
 # OpenLcbCLib -> JavaScript Port Plan
 
 ## Context

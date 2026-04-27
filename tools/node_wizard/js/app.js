@@ -543,12 +543,26 @@ function _buildInitMessages(view) {
         /* Restore preserve-whitespace checkbox state */
         msgs.push({ type: 'setPreserveWhitespace', value: preserveWhitespace });
 
+        /* User-entered output filename (drives the Array view's varname) */
+        msgs.push({
+            type: 'setOutputName',
+            filename: (configFormState && configFormState.cdiOutputName) || 'cdi.xml'
+        });
+
         /* Only send loadXml if we have user XML to restore */
         if (cdiUserXml) {
             msgs.push({ type: 'loadXml', xml: cdiUserXml, filename: cdiFilename });
         }
 
     } else if (view === 'fdi') {
+
+        /* FDI shares preserveWhitespace state with CDI (single wizard-level toggle). */
+        msgs.push({ type: 'setPreserveWhitespace', value: preserveWhitespace });
+
+        msgs.push({
+            type: 'setOutputName',
+            filename: (configFormState && configFormState.fdiOutputName) || 'fdi.xml'
+        });
 
         if (fdiUserXml) {
             msgs.push({ type: 'loadXml', xml: fdiUserXml, filename: fdiFilename });

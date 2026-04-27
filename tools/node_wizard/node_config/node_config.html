@@ -116,6 +116,28 @@
                                 for details.
                             </p>
 
+                            <div class="project-fields" data-help="descriptor-filenames">
+
+                                <div class="snip-field">
+                                    <label for="cdi-output-name">CDI filename</label>
+                                    <input type="text" id="cdi-output-name" maxlength="60" placeholder="cdi.xml">
+                                </div>
+
+                                <div class="snip-field">
+                                    <label for="fdi-output-name">FDI filename</label>
+                                    <input type="text" id="fdi-output-name" maxlength="60" placeholder="fdi.xml">
+                                </div>
+
+                            </div>
+
+                            <p class="field-note">
+                                Optional. The <code>.xml</code> file ships under this name in the generated
+                                project. The byte-array constant inside <code>openlcb_user_config.{c,js}</code>
+                                is auto-derived: <code>cdi_my_throttle.xml</code> &rarr;
+                                <code>_cdi_my_throttle_data</code>. Leave blank to keep the defaults
+                                (<code>cdi.xml</code> / <code>_cdi_data</code>).
+                            </p>
+
                         </div>
 
                     </details>
