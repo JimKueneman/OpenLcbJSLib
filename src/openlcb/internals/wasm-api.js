@@ -115,6 +115,14 @@ export function createHooks(dispatcher) {
         // node — replies go to whatever throttle is interested.
         onTrainSearchReply:                  (sourceId, sourceAlias, eid) => dispatcher.onTrainSearchReply(BigInt(sourceId), sourceAlias, BigInt(eid)),
 
+        // Simple Node Info Protocol reply — fires when a remote node
+        // replies to a Simple Node Info Request.  msgPtr is a transient
+        // pointer valid only for the duration of this callback; the
+        // dispatcher must read all fields synchronously before returning
+        // (the runtime turns msgPtr into a fully-resolved JS object before
+        // invoking the user-level callback).
+        onSnipReply:                         (sourceId, sourceAlias, msgPtr) => dispatcher.onSnipReply(BigInt(sourceId), sourceAlias, msgPtr >>> 0),
+
         // Broadcast time
         onBroadcastTimeChanged:     (clockId, hour, minute) => dispatcher.onBroadcastTimeChanged(BigInt(clockId), hour, minute),
         onBroadcastTimeReceived:    (nid, clockId, a, b)    => dispatch(nid, 'onBroadcastTimeReceived', BigInt(clockId), a, b),
@@ -176,6 +184,20 @@ export function createApi(Module) {
         sendInit:         c('wasm_send_initialization_event', 'number', ['bigint']),
         sendVerifyAddressed: c('wasm_send_verify_node_id_addressed', 'number', ['bigint','number','bigint']),
         sendVerifyGlobal:    c('wasm_send_verify_node_id_global',    'number', ['bigint']),
+
+        // Simple Node Info Protocol — outbound request and reply-payload
+        // extractors.  The extractors take a transient msgPtr supplied by
+        // the onSnipReply hook; runtime.js wraps them so the user code
+        // never touches the raw pointer.
+        sendSnipRequest:      c('wasm_send_simple_node_info_request',          'number', ['bigint','number','bigint']),
+        snipExtractMfgVer:    c('wasm_snip_extract_manufacturer_version_id',   'number', ['number']),
+        snipExtractUserVer:   c('wasm_snip_extract_user_version_id',           'number', ['number']),
+        snipExtractName:      c('wasm_snip_extract_name',                      'number', ['number','number','number']),
+        snipExtractModel:     c('wasm_snip_extract_model',                     'number', ['number','number','number']),
+        snipExtractHwVer:     c('wasm_snip_extract_hardware_version',          'number', ['number','number','number']),
+        snipExtractSwVer:     c('wasm_snip_extract_software_version',          'number', ['number','number','number']),
+        snipExtractUserName:  c('wasm_snip_extract_user_name',                 'number', ['number','number','number']),
+        snipExtractUserDesc:  c('wasm_snip_extract_user_description',          'number', ['number','number','number']),
         regCEvent:        c('wasm_register_consumer_eventid', 'number', ['bigint','bigint','number']),
         regPEvent:        c('wasm_register_producer_eventid', 'number', ['bigint','bigint','number']),
         clearCEvents:     c('wasm_clear_consumer_eventids',   'number', ['bigint']),

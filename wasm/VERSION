@@ -1,9 +1,9 @@
-commit: caa05de6 (dirty)
-date:   2026-04-25
+commit: 8da2672b (dirty)
+date:   2026-05-03
 source: OpenLcbCLib (/Users/jimkueneman/Documents/OpenLcbCLib)
 built:  via tools/wasm_update_wizard/wasm_update_wizard.sh
-emcc:   emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 5.0.6-git
+emcc:   emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 5.0.7-git
 sha256:
-  openlcb-core.wasm     c29e00e7b48813a1a34102444e850c8fff4c5f1917f1efd0a5fdbd46222df1a8
-  openlcb-core.mjs      3a8a0deb7c29d1ded39c99937967ee571a29a9d9af474e37c6422ad152e28f98
-  openlcb-defines.mjs   6bcc61a1f104e13623c93fb1a11945b502c82691c4786ee051e7dce835b7a022
+  openlcb-core.wasm     480e35a21ffd01d918424deb2ddf9dd1bf348dd2c81c0045ae0268e1b8384fb9
+  openlcb-core.mjs      5cdf746af296cbcd82e5f121791fb82fa284161bc500037b132c035fa9d85690
+  openlcb-defines.mjs   2254a02da193a316c6244e6cb9dbaad7247cbaa6d2d4546c2a3a705dbd3e9700

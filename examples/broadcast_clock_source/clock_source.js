@@ -16,12 +16,11 @@
 
 import {
     OpenLcb, WebSocketTransport,
-    BroadcastTimeClock, BroadcastTimeCommand, BroadcastTimeEventType,
+    BroadcastTimeClock, BroadcastTimeEventType,
 } from '../../src/index.js';
 import { LocalStorageConfigMemory } from '../../src/storage/localstorage-config-memory.js';
 import {
     NODE_ID,
-    CONFIG_OFFSETS,
     OpenLcbUserConfig_node_parameters,
 } from './openlcb_user_config.js';
 import { registerEvents } from './register_events.js';
@@ -60,7 +59,7 @@ function show(screen) {
     document.querySelectorAll('.screen').forEach(s => {
         s.classList.toggle('active', s.dataset.screen === screen);
     });
-    $('screenTitle').textContent = screen === 'connect' ? 'Connect' : 'Broadcast Clock';
+    $('screenTitle').textContent = screen === 'connect' ? 'Connect' : 'Generator';
 }
 
 function setStatus(name) {
@@ -73,88 +72,65 @@ function setStatus(name) {
 }
 
 // -----------------------------------------------------------------------------
-// Config-memory codec — maps the CONFIG_OFFSETS layout to JS values.
-// LocalStorageConfigMemory's `read` is the on-the-wire callback; reuse it
-// for in-process reads by passing a tiny buffer and an {id} shim.
-// -----------------------------------------------------------------------------
-function readBytes(nodeId, offset, count) {
-    const buf = new Uint8Array(count);
-    cfgMem.read({ id: nodeId }, offset, count, buf);
-    return buf;
-}
-function readUint(nodeId, offset, count) {
-    const b = readBytes(nodeId, offset, count);
-    let v = 0;
-    for (let i = 0; i < count; i++) v = (v << 8) | b[i];
-    return v >>> 0;
-}
-function readInt(nodeId, offset, count) {
-    let v = readUint(nodeId, offset, count);
-    const bits = count * 8;
-    const sign = 1 << (bits - 1);
-    return (v & sign) ? v - (1 << bits) : v;
-}
-function readBigUint(nodeId, offset, count) {
-    const b = readBytes(nodeId, offset, count);
-    let v = 0n;
-    for (let i = 0; i < count; i++) v = (v << 8n) | BigInt(b[i]);
-    return v;
-}
-
-// -----------------------------------------------------------------------------
 // Application state
 // -----------------------------------------------------------------------------
-const WELL_KNOWN = {
-    'default-fast':     BroadcastTimeClock.DEFAULT_FAST,
-    'default-realtime': BroadcastTimeClock.DEFAULT_REALTIME,
-    'alternate-1':      BroadcastTimeClock.ALTERNATE_1,
-    'alternate-2':      BroadcastTimeClock.ALTERNATE_2,
-};
+// Catalog of selectable well-known clocks.  Each entry maps a stable JS key
+// to the spec's 64-bit Specific Upper Part and a checkbox id on the Connect
+// screen.  Custom clocks are not in this list — they're handled separately
+// via the `ckCustom` checkbox + `customId` text field.
+const WELL_KNOWN_CLOCKS = [
+    { key: 'default-fast',     ck: 'ckDefaultFast',     id: BroadcastTimeClock.DEFAULT_FAST,     label: 'Default Fast' },
+    { key: 'default-realtime', ck: 'ckDefaultRealtime', id: BroadcastTimeClock.DEFAULT_REALTIME, label: 'Default Real-time' },
+    { key: 'alternate-1',      ck: 'ckAlternate1',      id: BroadcastTimeClock.ALTERNATE_1,      label: 'Alternate 1' },
+    { key: 'alternate-2',      ck: 'ckAlternate2',      id: BroadcastTimeClock.ALTERNATE_2,      label: 'Alternate 2' },
+];
 
 const state = {
     openlcb: null,
     node: null,
 
-    // Clock identity
-    clockKey: 'default-fast', // 'default-fast' | 'default-realtime' | 'alternate-1' | 'alternate-2' | 'custom'
-    customId: 0x020304050608n,
+    // Populated at Connect time from the user's checkbox selections.
+    // Each entry: { key, clockId (BigInt), label }.
+    activeClocks: [],
 
-    // Roles for the currently-selected clock id
-    isProducer: false,
-    isConsumer: false,
+    // Which clock the on-screen control panels currently target.
+    focusedKey: null,
 
-    // Live state shown in the readout — updated by callbacks
-    live: {
-        hour:    6,
-        minute:  0,
-        month:   10,
-        day:     3,
-        year:    1953,
-        rateRaw: 4,    // 1.00x
-        running: false,
-    },
+    // Per-clock live state, keyed by clockKey.  Callbacks update the matching
+    // clock; renderReadout reads the focused clock's slot.
+    // Shape: { [key]: { hour, minute, month, day, year, rateRaw, running } }
+    live: {},
 };
 
 // -----------------------------------------------------------------------------
 // Clock-id resolution
 // -----------------------------------------------------------------------------
 function currentClockId() {
-    if (state.clockKey === 'custom') {
-        // Custom upper-6-byte ID, formed via the WASM helper so the lower
-        // two bytes are guaranteed zero (the "Specific Upper Part" + 16-bit
-        // event variant per spec Section 4).
-        return state.openlcb
-            ? state.openlcb.broadcastTime.makeClockId(state.customId)
-            : (BigInt.asUintN(48, state.customId) << 16n);
-    }
-    return WELL_KNOWN[state.clockKey];
+    return state.activeClocks.find(c => c.key === state.focusedKey)?.clockId ?? null;
 }
 
-function refreshClockIdHex() {
-    try {
-        $('clockIdHex').textContent = hexDot(currentClockId(), 8);
-    } catch (e) {
-        $('clockIdHex').textContent = '—';
+function keyForClockId(clockId) {
+    return state.activeClocks.find(c => c.clockId === clockId)?.key ?? null;
+}
+
+// Populate the focus chip group from state.activeClocks.  Called once at login
+// complete; the chips persist for the session.
+function populateClockChips() {
+    const group = $('clockIdGroup');
+    group.innerHTML = '';
+    for (const c of state.activeClocks) {
+        const chip = document.createElement('span');
+        chip.className = 'chip' + (c.key === state.focusedKey ? ' on' : '');
+        chip.dataset.cid = c.key;
+        chip.textContent = c.label;
+        chip.addEventListener('click', () => {
+            state.focusedKey = c.key;
+            document.querySelectorAll('#clockIdGroup .chip').forEach(o => o.classList.toggle('on', o === chip));
+            refreshIdentityStatus();
+            renderReadout();
+            renderCodec();
+        });
+        group.appendChild(chip);
     }
 }
 
@@ -165,6 +141,14 @@ $('btnConnect').addEventListener('click', async () => {
     const url = $('url').value.trim();
     const nodeHex = $('nodeId').value.trim().replace(/[.\s]/g, '');
     if (!url || !nodeHex) return;
+
+    // Defensive — the button is also gated by refreshConnectGate(), but
+    // re-check in case both got out of sync somehow.
+    const anyClock = WELL_KNOWN_CLOCKS.some(wk => $(wk.ck).checked) || $('ckCustom').checked;
+    if (!anyClock) {
+        log('cannot connect: tick at least one clock first');
+        return;
+    }
 
     setStatus('connecting');
     log(`connect ${url} as ${hexDot(BigInt('0x' + nodeHex))}`);
@@ -178,68 +162,70 @@ $('btnConnect').addEventListener('click', async () => {
                 onTransportError:      (err) => log(`transport error: ${err?.message ?? err}`),
 
                 // Runtime-level minute tick — fires for every clock the library
-                // tracks, including this producer's own.  Use it to drive the
-                // big readout cheaply, and only update Time fields.
+                // tracks.  Update the matching clock's slot; only re-render if
+                // it's the focused one.
                 onBroadcastTimeChanged: (clockId, h, m) => {
-                    if (clockId !== currentClockId()) return;
-                    state.live.hour = h; state.live.minute = m;
-                    renderReadout();
+                    const key = keyForClockId(clockId);
+                    if (!key) return;
+                    state.live[key].hour = h;
+                    state.live[key].minute = m;
+                    if (key === state.focusedKey) renderReadout();
                 },
             },
         });
 
         state.node = state.openlcb.createNode(BigInt('0x' + nodeHex), OpenLcbUserConfig_node_parameters, {
             onLoginComplete: (n) => {
-                log(`generator login complete id=${hexDot(n.id)}`);
+                log(`logged in as ${hexDot(n.id)}`);
                 setStatus('connected');
-                applyBootDefaults(n.id);
                 show('clock');
-                refreshClockIdHex();
-                refreshDiagnostics();
+                populateClockChips();
+                refreshIdentityStatus();
+                renderReadout();
                 renderCodec();
             },
 
-            // Per-node broadcast-time callbacks — fire whenever a recognized
-            // event arrives on the bus for any clock this node has set up.
+            // Time updates that come back from the network — keeps each
+            // clock's slot in sync with what's actually on the wire.
             onBroadcastTimeReceived: (_node, clockId, hour, minute) => {
-                if (clockId !== currentClockId()) return;
-                state.live.hour = hour; state.live.minute = minute;
-                renderReadout();
-                log(`rx Report Time ${pad2(hour)}:${pad2(minute)}`);
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].hour = hour; state.live[key].minute = minute;
+                if (key === state.focusedKey) renderReadout();
+                log(`heard time ${pad2(hour)}:${pad2(minute)} on "${labelFor(key)}"`);
             },
             onBroadcastDateReceived: (_node, clockId, month, day) => {
-                if (clockId !== currentClockId()) return;
-                state.live.month = month; state.live.day = day;
-                renderReadout();
-                log(`rx Report Date ${month}/${day}`);
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].month = month; state.live[key].day = day;
+                if (key === state.focusedKey) renderReadout();
+                log(`heard date ${month}/${day} on "${labelFor(key)}"`);
             },
             onBroadcastYearReceived: (_node, clockId, year) => {
-                if (clockId !== currentClockId()) return;
-                state.live.year = year;
-                renderReadout();
-                log(`rx Report Year ${year}`);
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].year = year;
+                if (key === state.focusedKey) renderReadout();
+                log(`heard year ${year} on "${labelFor(key)}"`);
             },
             onBroadcastRateReceived: (_node, clockId, rate) => {
-                if (clockId !== currentClockId()) return;
-                state.live.rateRaw = rate;
-                renderReadout();
-                log(`rx Report Rate raw=${rate} (${rateToFloat(rate).toFixed(2)}x)`);
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].rateRaw = rate;
+                if (key === state.focusedKey) renderReadout();
+                log(`heard speed ${rateToFloat(rate).toFixed(2)}x on "${labelFor(key)}"`);
             },
             onBroadcastClockStarted: (_node, clockId) => {
-                if (clockId !== currentClockId()) return;
-                state.live.running = true;
-                renderReadout();
-                log('rx Clock Started');
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].running = true;
+                if (key === state.focusedKey) renderReadout();
+                log(`"${labelFor(key)}" started`);
             },
             onBroadcastClockStopped: (_node, clockId) => {
-                if (clockId !== currentClockId()) return;
-                state.live.running = false;
-                renderReadout();
-                log('rx Clock Stopped');
+                const key = keyForClockId(clockId); if (!key) return;
+                state.live[key].running = false;
+                if (key === state.focusedKey) renderReadout();
+                log(`"${labelFor(key)}" stopped`);
             },
             onBroadcastDateRollover: (_node, clockId) => {
-                if (clockId !== currentClockId()) return;
-                log('rx Date Rollover');
+                const key = keyForClockId(clockId); if (!key) return;
+                log(`"${labelFor(key)}" crossed midnight`);
             },
 
             // Config Memory persistence (same pattern as the throttle).
@@ -254,7 +240,53 @@ $('btnConnect').addEventListener('click', async () => {
             },
         });
 
+        // Build the active-clocks list from the Connect-screen checkboxes.
+        // This drives both the §6.1 Range Identified emissions (registered
+        // before login via setupProducer) and the runtime focus chip group.
+        state.activeClocks = [];
+        for (const wk of WELL_KNOWN_CLOCKS) {
+            if ($(wk.ck).checked) {
+                state.activeClocks.push({ key: wk.key, clockId: wk.id, label: wk.label });
+            }
+        }
+        if ($('ckCustom').checked) {
+            const hex = $('customId').value.replace(/[.\s]/g, '');
+            const customRaw = BigInt('0x' + (hex || '0'));
+            const cid = state.openlcb.broadcastTime.makeClockId(customRaw);
+            state.activeClocks.push({
+                key: 'custom',
+                clockId: cid,
+                label: 'Custom ' + hexDot(customRaw, 6),
+            });
+        }
+        state.focusedKey = state.activeClocks[0].key;
+
+        // Per-clock live state — hard-coded boot defaults per clock.  Per
+        // BroadcastTimeS Section 5 each clock has independent state, so we
+        // keep one slot per active clock.
+        state.live = {};
+        for (const c of state.activeClocks) {
+            state.live[c.key] = {
+                hour: 6, minute: 0, month: 10, day: 3, year: 1953,
+                rateRaw: 4, running: false,
+            };
+        }
+
         registerEvents(state.node);
+
+        // setupProducer for each selected clock BEFORE start() so the C
+        // library has the producer/consumer ranges in the node's lists when
+        // login fires its automatic Range Identified emissions per spec
+        // Section 6.1.  setupProducer also allocates the per-clock state
+        // slot inside the broadcast-time protocol handler.
+        for (const c of state.activeClocks) {
+            try {
+                state.node.broadcastTime.setupProducer(c.clockId);
+                log(`will generate "${c.label}"`);
+            } catch (e) {
+                log(`could not register "${c.label}": ${e?.message ?? e}`);
+            }
+        }
 
         await state.openlcb.start();
     } catch (err) {
@@ -269,15 +301,17 @@ $('btnDisconnect').addEventListener('click', async () => {
     if (state.openlcb) await state.openlcb.stop();
     state.openlcb = null;
     state.node = null;
-    state.isProducer = state.isConsumer = false;
+    state.activeClocks = [];
+    state.focusedKey = null;
+    state.live = {};
     setStatus('disconnected');
     show('connect');
+    refreshConnectGate();
     log('disconnected');
 });
 
 async function softReboot() {
     if (!state.openlcb) return;
-    state.isProducer = state.isConsumer = false;
     try {
         await state.openlcb.reboot();
     } catch (e) {
@@ -288,140 +322,73 @@ async function softReboot() {
 }
 
 // -----------------------------------------------------------------------------
-// Boot defaults — pull from cfgMem (CDI-defined offsets) and seed the UI.
-// On a fresh / blank cfgMem these read as zero, which gives an ill-formed
-// clock (00:00, 0/0, year 0, rate 0).  Detect that and fall back to a
-// sensible default rather than ship a date a consumer would reject.
+// Connect-screen clock selection — Connect button is gated by "at least one
+// clock ticked", and the Custom hex field activates only when its checkbox is.
 // -----------------------------------------------------------------------------
-function applyBootDefaults(nodeId) {
-    const o = CONFIG_OFFSETS;
-    const idIdx     = readUint(nodeId, o.CLOCK_ID_INDEX,    1);
-    const customRaw = readBigUint(nodeId, o.CUSTOM_CLOCK_ID, 6);
-    const auto      = readUint(nodeId, o.AUTO_START,        1);
-    let h    = readUint(nodeId, o.INITIAL_HOUR,    1);
-    let m    = readUint(nodeId, o.INITIAL_MINUTE,  1);
-    let mo   = readUint(nodeId, o.INITIAL_MONTH,   1);
-    let d    = readUint(nodeId, o.INITIAL_DAY,     1);
-    let y    = readUint(nodeId, o.INITIAL_YEAR,    2);
-    let rate = readInt(nodeId, o.INITIAL_RATE_RAW, 2);
-
-    // Fallback when month/day are out of range (i.e. cfgMem still zeroed).
-    if (mo < 1 || mo > 12 || d < 1 || d > 31) {
-        h = 6; m = 0; mo = 10; d = 3; y = 1953; rate = 4;
-        log('cfgMem appears empty — seeding defaults 06:00 Oct 3 1953 1.00x');
+function refreshConnectGate() {
+    const anyChecked = WELL_KNOWN_CLOCKS.some(wk => $(wk.ck).checked) || $('ckCustom').checked;
+    $('btnConnect').disabled = !anyChecked;
+    if (!anyChecked) {
+        $('connInfo').textContent = 'Tick at least one clock to enable Connect.';
+    } else {
+        $('connInfo').textContent = 'Not connected.';
     }
-
-    const KEYS = ['default-fast','default-realtime','alternate-1','alternate-2','custom'];
-    state.clockKey = KEYS[idIdx] ?? 'default-fast';
-    if (customRaw) state.customId = customRaw;
-
-    state.live = {
-        hour: h, minute: m, month: mo, day: d, year: y,
-        rateRaw: rate,
-        running: !!auto,
-    };
-
-    // Sync the staging inputs to the booted state for first paint.
-    $('repHour').value     = h;
-    $('repMinute').value   = m;
-    $('repMonth').value    = mo;
-    $('repDay').value      = d;
-    $('repYear').value     = y;
-    $('repRateRaw').value  = rate;
-    $('customId').value    = state.customId.toString(16).padStart(12, '0');
-
-    document.querySelectorAll('#clockIdGroup .chip').forEach(c => {
-        c.classList.toggle('on', c.dataset.cid === state.clockKey);
-    });
-    $('customIdRow').hidden = state.clockKey !== 'custom';
-
-    renderReadout();
-    renderCodec();
 }
 
-// -----------------------------------------------------------------------------
-// Identity selector — chip group + custom id input
-// -----------------------------------------------------------------------------
-document.querySelectorAll('#clockIdGroup .chip').forEach(c => {
-    c.addEventListener('click', () => {
-        state.clockKey = c.dataset.cid;
-        document.querySelectorAll('#clockIdGroup .chip').forEach(o => {
-            o.classList.toggle('on', o === c);
-        });
-        $('customIdRow').hidden = state.clockKey !== 'custom';
-        // Clear roles — the new ID hasn't been set up yet on either side.
-        state.isProducer = state.isConsumer = false;
-        refreshClockIdHex();
-        refreshDiagnostics();
-        renderCodec();
-    });
+for (const wk of WELL_KNOWN_CLOCKS) {
+    $(wk.ck).addEventListener('change', refreshConnectGate);
+}
+$('ckCustom').addEventListener('change', () => {
+    $('customId').disabled = !$('ckCustom').checked;
+    refreshConnectGate();
 });
-
-$('customId').addEventListener('input', () => {
-    const hex = $('customId').value.replace(/[.\s]/g, '');
-    try {
-        state.customId = BigInt('0x' + (hex || '0'));
-        refreshClockIdHex();
-        renderCodec();
-    } catch { /* ignore mid-typed garbage */ }
-});
-
-// -----------------------------------------------------------------------------
-// Setup as Producer / Consumer
-// -----------------------------------------------------------------------------
-$('btnSetupProducer').addEventListener('click', () => {
-    if (!state.node) return;
-    try {
-        const cid = currentClockId();
-        state.node.broadcastTime.setupProducer(cid);
-        state.isProducer = true;
-        log(`setupProducer(${hexDot(cid, 8)})`);
-        refreshDiagnostics();
-        // Section 6.5 says startup also runs the 6.3 sync sequence.  The
-        // library does this for us, but expose the trigger explicitly.
-    } catch (e) {
-        log(`setupProducer failed: ${e?.message ?? e}`);
-    }
-});
-
-$('btnSetupConsumer').addEventListener('click', () => {
-    if (!state.node) return;
-    try {
-        const cid = currentClockId();
-        state.node.broadcastTime.setupConsumer(cid);
-        state.isConsumer = true;
-        log(`setupConsumer(${hexDot(cid, 8)})`);
-        refreshDiagnostics();
-    } catch (e) {
-        log(`setupConsumer failed: ${e?.message ?? e}`);
-    }
-});
+refreshConnectGate();
 
 // -----------------------------------------------------------------------------
 // Local clock advance (start/stop the library's internal time tracker)
 // -----------------------------------------------------------------------------
+// Run / Pause flip the library's internal running state, announce it on
+// the wire, and schedule the §6.5 catch-up burst.  We also mirror the new
+// state into our own UI directly — the user click is authoritative for
+// this node's display, since the C library does not echo producer-side
+// API calls back through any callback.
 $('btnLocalStart').addEventListener('click', () => {
     if (!state.node) return;
-    state.node.broadcastTime.start(currentClockId());
-    log('start() — local advance ON');
+    const cid = currentClockId();
+    state.node.broadcastTime.start(cid);
+    try { state.node.broadcastTime.sendStart(cid); } catch (e) { log(`broadcast "started" failed: ${e?.message ?? e}`); }
+    scheduleSyncBurst(cid);
+    state.live[state.focusedKey].running = true;
+    renderReadout();
+    log(`running "${labelFor(state.focusedKey)}"`);
 });
 $('btnLocalStop').addEventListener('click', () => {
     if (!state.node) return;
-    state.node.broadcastTime.stop(currentClockId());
-    log('stop() — local advance OFF');
+    const cid = currentClockId();
+    state.node.broadcastTime.stop(cid);
+    try { state.node.broadcastTime.sendStop(cid); } catch (e) { log(`broadcast "stopped" failed: ${e?.message ?? e}`); }
+    scheduleSyncBurst(cid);
+    state.live[state.focusedKey].running = false;
+    renderReadout();
+    log(`paused "${labelFor(state.focusedKey)}"`);
 });
 
 // -----------------------------------------------------------------------------
-// Producer reports — emit each event type on the wire from the staged values
+// Broadcast — emit each value on the wire from the form above
 // -----------------------------------------------------------------------------
 function readStaged() {
+    // The wire format stores rate as a 12-bit signed fixed-point value (rate * 4).
+    // The form takes the user-friendly multiplier; round to the nearest 0.25
+    // step the protocol can represent.
+    const mult = +$('repRateMult').value;
+    const rateRaw = Math.round(clamp(mult, -512, 511.75) * 4);
     return {
         h:    clamp(+$('repHour').value, 0, 23),
         m:    clamp(+$('repMinute').value, 0, 59),
         mo:   clamp(+$('repMonth').value, 1, 12),
         d:    clamp(+$('repDay').value, 1, 31),
         y:    clamp(+$('repYear').value, 0, 4095),
-        rate: clamp(+$('repRateRaw').value, -2048, 2047),
+        rate: clamp(rateRaw, -2048, 2047),
     };
 }
 
@@ -433,34 +400,62 @@ function withClock(label, fn) {
     catch (e) { log(`${label} failed: ${e?.message ?? e}`); }
 }
 
-$('btnReportTime').addEventListener('click',   () => withClock('sendReportTime',   (c) => { const s = readStaged(); bt().sendReportTime(c, s.h, s.m); log(`tx Report Time ${pad2(s.h)}:${pad2(s.m)}`); }));
-$('btnReportDate').addEventListener('click',   () => withClock('sendReportDate',   (c) => { const s = readStaged(); bt().sendReportDate(c, s.mo, s.d); log(`tx Report Date ${s.mo}/${s.d}`); }));
-$('btnReportYear').addEventListener('click',   () => withClock('sendReportYear',   (c) => { const s = readStaged(); bt().sendReportYear(c, s.y); log(`tx Report Year ${s.y}`); }));
-$('btnReportRate').addEventListener('click',   () => withClock('sendReportRate',   (c) => { const s = readStaged(); bt().sendReportRate(c, s.rate); log(`tx Report Rate raw=${s.rate} (${rateToFloat(s.rate).toFixed(2)}x)`); }));
-$('btnReportStart').addEventListener('click',  () => withClock('sendStart',        (c) => { bt().sendStart(c); log('tx Report Start'); }));
-$('btnReportStop').addEventListener('click',   () => withClock('sendStop',         (c) => { bt().sendStop(c); log('tx Report Stop'); }));
-$('btnDateRollover').addEventListener('click', () => withClock('sendDateRollover', (c) => { bt().sendDateRollover(c); log('tx Date Rollover'); }));
-$('btnQueryReply').addEventListener('click',   () => withClock('sendQueryReply',   (c) => { bt().sendQueryReply(c); log('tx Query Reply (single)'); }));
+// Spec §6.5 out-of-band rule: when the producer's settings are changed via a
+// non-network mechanism (in this demo, the user clicking Run/Pause or any
+// Broadcast button), 3 seconds after the LAST change the producer should send
+// the Section 6.3 catch-up burst.  triggerSyncDelay() resets the underlying
+// timer on each call, so a flurry of clicks coalesces into one burst at the
+// end.  Date Rollover is excluded — it's a notification of a transition, not
+// a state change, and the spec doesn't list it among the triggering events.
+function scheduleSyncBurst(cid) {
+    try { bt().triggerSyncDelay(cid); }
+    catch (e) { log(`schedule snapshot failed: ${e?.message ?? e}`); }
+}
 
-$('btnTriggerQueryReply').addEventListener('click', () => withClock('triggerQueryReply', (c) => {
+// Each Broadcast handler: emit on the wire, schedule §6.5 catch-up burst,
+// and mirror the staged value into the focused clock's live slot so our
+// own UI reflects what we just sent.  Date Rollover carries no value, so
+// it has nothing to mirror.
+$('btnReportTime').addEventListener('click',   () => withClock('broadcast time',  (c) => {
+    const s = readStaged();
+    bt().sendReportTime(c, s.h, s.m);
+    scheduleSyncBurst(c);
+    state.live[state.focusedKey].hour = s.h;
+    state.live[state.focusedKey].minute = s.m;
+    renderReadout();
+    log(`broadcast time ${pad2(s.h)}:${pad2(s.m)}`);
+}));
+$('btnReportDate').addEventListener('click',   () => withClock('broadcast date',  (c) => {
+    const s = readStaged();
+    bt().sendReportDate(c, s.mo, s.d);
+    scheduleSyncBurst(c);
+    state.live[state.focusedKey].month = s.mo;
+    state.live[state.focusedKey].day   = s.d;
+    renderReadout();
+    log(`broadcast date ${s.mo}/${s.d}`);
+}));
+$('btnReportYear').addEventListener('click',   () => withClock('broadcast year',  (c) => {
+    const s = readStaged();
+    bt().sendReportYear(c, s.y);
+    scheduleSyncBurst(c);
+    state.live[state.focusedKey].year = s.y;
+    renderReadout();
+    log(`broadcast year ${s.y}`);
+}));
+$('btnReportRate').addEventListener('click',   () => withClock('broadcast speed', (c) => {
+    const s = readStaged();
+    bt().sendReportRate(c, s.rate);
+    scheduleSyncBurst(c);
+    state.live[state.focusedKey].rateRaw = s.rate;
+    renderReadout();
+    log(`broadcast speed ${rateToFloat(s.rate).toFixed(2)}x`);
+}));
+$('btnDateRollover').addEventListener('click', () => withClock('broadcast midnight', (c) => { bt().sendDateRollover(c); log('broadcast "midnight crossed"'); }));
+
+$('btnTriggerQueryReply').addEventListener('click', () => withClock('snapshot now', (c) => {
     bt().triggerQueryReply(c);
-    log('triggerQueryReply — Section 6.3 burst queued');
+    log('sending full snapshot to listeners');
 }));
-$('btnTriggerSyncDelay').addEventListener('click', () => withClock('triggerSyncDelay', (c) => {
-    bt().triggerSyncDelay(c);
-    log('triggerSyncDelay — burst scheduled in 3s (Section 6.5)');
-}));
-
-// -----------------------------------------------------------------------------
-// Outbound Set commands (consumer-style; producer here echoes them back)
-// -----------------------------------------------------------------------------
-$('btnSetTime').addEventListener('click', () => withClock('sendSetTime', (c) => { const s = readStaged(); bt().sendSetTime(c, s.h, s.m); log(`tx Set Time ${pad2(s.h)}:${pad2(s.m)}`); }));
-$('btnSetDate').addEventListener('click', () => withClock('sendSetDate', (c) => { const s = readStaged(); bt().sendSetDate(c, s.mo, s.d); log(`tx Set Date ${s.mo}/${s.d}`); }));
-$('btnSetYear').addEventListener('click', () => withClock('sendSetYear', (c) => { const s = readStaged(); bt().sendSetYear(c, s.y); log(`tx Set Year ${s.y}`); }));
-$('btnSetRate').addEventListener('click', () => withClock('sendSetRate', (c) => { const s = readStaged(); bt().sendSetRate(c, s.rate); log(`tx Set Rate raw=${s.rate} (${rateToFloat(s.rate).toFixed(2)}x)`); }));
-$('btnCmdStart').addEventListener('click', () => withClock('sendCommandStart', (c) => { bt().sendCommandStart(c); log('tx Command Start'); }));
-$('btnCmdStop').addEventListener('click',  () => withClock('sendCommandStop',  (c) => { bt().sendCommandStop(c);  log('tx Command Stop'); }));
-$('btnSendQuery').addEventListener('click', () => withClock('sendQuery', (c) => { bt().sendQuery(c); log('tx Query'); }));
 
 // -----------------------------------------------------------------------------
 // Live readout
@@ -470,15 +465,24 @@ function pad2(n) { return n.toString().padStart(2, '0'); }
 function rateToFloat(raw) { return raw / 4; }
 
 function renderReadout() {
-    $('readTime').textContent = `${pad2(state.live.hour)}:${pad2(state.live.minute)}`;
-    const monthName = ['—','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][state.live.month] ?? '—';
-    $('readDate').textContent = `${monthName} ${state.live.day}`;
-    $('readYear').textContent = `${state.live.year}`;
-    const r = rateToFloat(state.live.rateRaw);
-    $('readRate').textContent = `${r >= 0 ? '+' : ''}${r.toFixed(2)}x`;
+    const live = state.live[state.focusedKey];
+    if (!live) {
+        $('readTime').textContent = '--:--';
+        $('readDate').textContent = '—';
+        $('readYear').textContent = '—';
+        $('readRate').textContent = '—';
+        $('runPill').className = 'pill';
+        $('runPill').textContent = '—';
+        return;
+    }
+    $('readTime').textContent = `${pad2(live.hour)}:${pad2(live.minute)}`;
+    const monthName = ['—','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][live.month] ?? '—';
+    $('readDate').textContent = `${monthName} ${live.day}`;
+    $('readYear').textContent = `${live.year}`;
+    $('readRate').textContent = `${rateToFloat(live.rateRaw).toFixed(2)}×`;
     const pill = $('runPill');
-    pill.className  = `pill ${state.live.running ? 'running' : 'stopped'}`;
-    pill.textContent = state.live.running ? 'Running' : 'Stopped';
+    pill.className  = `pill ${live.running ? 'running' : 'stopped'}`;
+    pill.textContent = live.running ? 'Running' : 'Paused';
 }
 
 // -----------------------------------------------------------------------------
@@ -501,19 +505,20 @@ function renderCodec() {
         set('builtYearSet',    bc.createYearEventId(c, s.y, true));
         set('builtRateReport', bc.createRateEventId(c, s.rate, false));
         set('builtRateSet',    bc.createRateEventId(c, s.rate, true));
-        set('builtCmdQuery',     bc.createCommandEventId(c, BroadcastTimeCommand.QUERY));
+        // createCommandEventId expects the BroadcastTimeEventType enum index
+        // (8/9/10), not the wire-byte values from BroadcastTimeCommand (0xF000+).
+        // The C export wasm_bt_create_command_event_id maps the enum to bytes
+        // 6/7 of the event ID per BroadcastTimeS §4.9 / §4.10.
+        set('builtCmdQuery',     bc.createCommandEventId(c, BroadcastTimeEventType.BROADCAST_TIME_EVENT_QUERY));
         $('builtCmdStartStop').textContent =
-            'Start ' + eventHexDot(bc.createCommandEventId(c, BroadcastTimeCommand.START)) +
-            '\nStop  ' + eventHexDot(bc.createCommandEventId(c, BroadcastTimeCommand.STOP));
+            'Start ' + eventHexDot(bc.createCommandEventId(c, BroadcastTimeEventType.BROADCAST_TIME_EVENT_START)) +
+            '\nStop  ' + eventHexDot(bc.createCommandEventId(c, BroadcastTimeEventType.BROADCAST_TIME_EVENT_STOP));
     } catch (e) {
         // BigInt range issues on garbage input — fall back to dashes.
     }
-
-    const r = rateToFloat(s.rate);
-    $('rateEffective').textContent = `${r >= 0 ? '+' : ''}${r.toFixed(2)}x`;
 }
 
-['repHour','repMinute','repMonth','repDay','repYear','repRateRaw'].forEach(id => {
+['repHour','repMinute','repMonth','repDay','repYear','repRateMult'].forEach(id => {
     $(id).addEventListener('input', renderCodec);
 });
 
@@ -564,29 +569,21 @@ $('decodeIn').addEventListener('input', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Diagnostics
+// Plain-English status line shown next to the "Showing" header
 // -----------------------------------------------------------------------------
-function refreshDiagnostics() {
-    if (!state.node) {
-        $('diagIsProducer').textContent = '—';
-        $('diagIsConsumer').textContent = '—';
+function labelFor(key) {
+    return state.activeClocks.find(c => c.key === key)?.label ?? '—';
+}
+
+function refreshIdentityStatus() {
+    if (!state.node || state.focusedKey == null) {
         $('identityStatus').textContent = '—';
         return;
     }
     const cid = currentClockId();
-    const isP = state.node.broadcastTime.isProducer(cid);
-    const isC = state.node.broadcastTime.isConsumer(cid);
-    state.isProducer = isP;
-    state.isConsumer = isC;
-    $('diagIsProducer').textContent = isP ? 'yes' : 'no';
-    $('diagIsConsumer').textContent = isC ? 'yes' : 'no';
-    const roles = [];
-    if (isP) roles.push('producer');
-    if (isC) roles.push('consumer');
-    $('identityStatus').textContent = roles.length ? roles.join(' + ') : 'not set up';
+    const ok = cid != null && state.node.broadcastTime.isProducer(cid);
+    $('identityStatus').textContent = ok ? `generating "${labelFor(state.focusedKey)}"` : '—';
 }
-
-$('btnRefreshDiag').addEventListener('click', refreshDiagnostics);
 
 // -----------------------------------------------------------------------------
 // Utilities
@@ -598,4 +595,8 @@ function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, Number.isFinite(n) 
 // -----------------------------------------------------------------------------
 $('nodeId').value = NODE_ID.toString(16).padStart(12, '0');
 renderReadout();
-log('ready — click Connect to attach to JMRI');
+log('ready — click Connect to attach to the network');
+
+// DEBUG-ONLY probe — exposes runtime handles so the validation harness
+// can introspect the codec.  Remove for production.
+window.__debug = { state, currentClockId };

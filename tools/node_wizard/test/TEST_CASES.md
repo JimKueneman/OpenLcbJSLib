@@ -574,15 +574,6 @@ Attribute coverage: `kind` (binary/momentary/analog), `origin`, `size`, `space`
 
 ---
 
-### `fdi/12_line_accuracy_function_clash.xml` — FDI Line Accuracy — Function Name Clash
-**Tests:** Stray text `Headlight` appears inside the second `<function>` while `Headlight` is also the `<name>` content of the first function.  The validator must pin the error to the line of the stray text, not the line of the matching `<name>`.
-
-| Check | Expected |
-|-------|----------|
-| Validate | Exactly 1 error: "Character content other than whitespace is not allowed" at line 24 (the stray text), NOT at line 18 (the legitimate `<name>Headlight</name>`) |
-
----
-
 ### `cdi/30_stray_text_whitespace_ok.xml` — extended (gap fill)
 The previously-existing test 30 was extended to also include `<link>`, `<visibility>`, `<readOnly>`, `<slider>`, and `<radiobutton>` — all five CDI tags that had zero coverage before.  The extended section uses the same heavy-whitespace style as the rest of the file so it simultaneously tests that whitespace inside these elements is not falsely flagged.
 

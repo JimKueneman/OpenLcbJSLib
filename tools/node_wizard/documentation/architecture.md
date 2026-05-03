@@ -57,13 +57,14 @@ tools/node_wizard/
         file_preview.css
         js/
             file_preview.js     File tree builder, CodeMirror read-only viewer
-    documentation/              This file (sole authoritative arch doc)
-        architecture.md
-    test/                       CDI + FDI validator/renderer test suite
+    documentation/              This file and supporting docs
+        maintenance_instructions.md
+        wizard_advanced_validation_rules/
+        wizard_display_matrix/
+    test/                       CDI validator/renderer test suite
         run_tests.html
-        cdi/                    Self-describing XML test cases
-        fdi/                    Self-describing FDI XML test cases
-        TEST_CASES.md           Inventory + expected results
+        cdi/                    25 self-describing XML test cases
+        TEST_CASES.md
     vendor/
         codemirror/             CodeMirror 6 IIFE bundle + adapter
         jszip/                  JSZip library (ZIP file generation)

@@ -20,31 +20,6 @@ import { PSI } from '../../src/openlcb/constants.js';
 export const NODE_ID = 0x020304050608n;
 
 // ----------------------------------------------------------------------------
-// Configuration memory layout — offsets into address space 0xFD.
-//
-// 0..124  : ACDI user name (62) + description (63), per ACDI convention.
-// 128..   : Clock generator configuration (matches cdi_clock_source.xml).
-//
-// Exposed so the application code can read/write these fields without
-// duplicating the layout constants.
-// ----------------------------------------------------------------------------
-
-export const CONFIG_OFFSETS = Object.freeze({
-    USER_NAME:           0,    // 62 bytes
-    USER_DESCRIPTION:    62,   // 63 bytes
-
-    CLOCK_ID_INDEX:      128,  // u8 — 0..3 well-known, 4 = use CUSTOM_CLOCK_ID
-    CUSTOM_CLOCK_ID:     129,  // 6 bytes, big-endian (48-bit OpenLCB ID)
-    AUTO_START:          135,  // u8 — 0 stopped, 1 running
-    INITIAL_HOUR:        136,  // u8 0..23
-    INITIAL_MINUTE:      137,  // u8 0..59
-    INITIAL_MONTH:       138,  // u8 1..12
-    INITIAL_DAY:         139,  // u8 1..31
-    INITIAL_YEAR:        140,  // u16 BE, 0..4095
-    INITIAL_RATE_RAW:    142,  // i16 BE — 12-bit signed fixed-point per spec §4.4
-});
-
-// ----------------------------------------------------------------------------
 // CDI (Configuration Description Information) — UTF-8 + NUL terminator.
 // Configuration tools read this as a NUL-terminated string.
 // ----------------------------------------------------------------------------
@@ -74,67 +49,10 @@ const _cdi_clock_source_xml = `<?xml version="1.0"?>
     </group>
   </segment>
   <segment space="253" origin="128">
-    <name>Clock Configuration</name>
+    <name>Configuration</name>
     <group>
-      <name>Clock Identity</name>
-      <description>Selects which 6-byte Specific Upper Part this generator owns. Per BroadcastTimeS Section 4 the four well-known IDs cover the common case; pick Custom to use the 48-bit ID configured below from the manufacturer/owner unique ID space.</description>
-      <int size="1">
-        <name>Clock ID</name>
-        <description>0 = Default Fast (01.01.00.00.01.00), 1 = Default Real-time (01.01.00.00.01.01), 2 = Alternate 1 (01.01.00.00.01.02), 3 = Alternate 2 (01.01.00.00.01.03), 4 = Custom (uses the 48-bit value below)</description>
-        <map>
-          <relation><property>0</property><value>Default Fast Clock</value></relation>
-          <relation><property>1</property><value>Default Real-time Clock</value></relation>
-          <relation><property>2</property><value>Alternate Clock 1</value></relation>
-          <relation><property>3</property><value>Alternate Clock 2</value></relation>
-          <relation><property>4</property><value>Custom (use 48-bit ID below)</value></relation>
-        </map>
-      </int>
-      <int size="6">
-        <name>Custom Clock ID (48-bit)</name>
-        <description>Used only when Clock ID above is set to Custom. Must be a valid OpenLCB 48-bit unique ID controlled by the manufacturer or operator; collisions with the 4 reserved IDs above are not permitted.</description>
-      </int>
-    </group>
-    <group>
-      <name>Boot Defaults</name>
-      <description>Values applied when the node starts. The node may diverge from these at run-time via Set events from the bus or the local UI.</description>
-      <int size="1">
-        <name>Auto-start</name>
-        <description>0 = boot stopped, 1 = boot running. The library auto-advances modeled time only while running.</description>
-        <map>
-          <relation><property>0</property><value>Stopped at boot</value></relation>
-          <relation><property>1</property><value>Running at boot</value></relation>
-        </map>
-      </int>
-      <int size="1">
-        <name>Initial Hour</name>
-        <description>0-23 (24-hour format per spec Section 4.1)</description>
-        <min>0</min><max>23</max>
-      </int>
-      <int size="1">
-        <name>Initial Minute</name>
-        <description>0-59</description>
-        <min>0</min><max>59</max>
-      </int>
-      <int size="1">
-        <name>Initial Month</name>
-        <description>1-12</description>
-        <min>1</min><max>12</max>
-      </int>
-      <int size="1">
-        <name>Initial Day</name>
-        <description>1-31</description>
-        <min>1</min><max>31</max>
-      </int>
-      <int size="2">
-        <name>Initial Year</name>
-        <description>0-4095 AD per spec Section 4.3</description>
-        <min>0</min><max>4095</max>
-      </int>
-      <int size="2">
-        <name>Initial Rate (raw)</name>
-        <description>12-bit signed fixed-point rate per spec Section 4.4: rate * 4. e.g. 4 = 1.00x, 16 = 4.00x, -4 = -1.00x. Range -2048..2047 (i.e. -512.00x..511.75x).</description>
-        <min>-2048</min><max>2047</max>
-      </int>
+      <name>Configuration</name>
+      <description>Node configuration settings</description>
     </group>
   </segment>
 </cdi>

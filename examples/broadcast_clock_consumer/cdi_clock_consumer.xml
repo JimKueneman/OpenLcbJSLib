@@ -23,53 +23,10 @@
     </group>
   </segment>
   <segment space="253" origin="128">
-    <name>Clock Configuration</name>
+    <name>Configuration</name>
     <group>
-      <name>Clock Identity</name>
-      <description>Selects which 6-byte Specific Upper Part this consumer tracks. Per BroadcastTimeS Section 4 the four well-known IDs cover the common case; pick Custom to track a 48-bit ID controlled by the producer.</description>
-      <int size="1">
-        <name>Clock ID</name>
-        <description>0 = Default Fast (01.01.00.00.01.00), 1 = Default Real-time (01.01.00.00.01.01), 2 = Alternate 1 (01.01.00.00.01.02), 3 = Alternate 2 (01.01.00.00.01.03), 4 = Custom (uses the 48-bit value below)</description>
-        <map>
-          <relation><property>0</property><value>Default Fast Clock</value></relation>
-          <relation><property>1</property><value>Default Real-time Clock</value></relation>
-          <relation><property>2</property><value>Alternate Clock 1</value></relation>
-          <relation><property>3</property><value>Alternate Clock 2</value></relation>
-          <relation><property>4</property><value>Custom (use 48-bit ID below)</value></relation>
-        </map>
-      </int>
-      <int size="6">
-        <name>Custom Clock ID (48-bit)</name>
-        <description>Used only when Clock ID above is set to Custom. Must match the 48-bit unique ID the producer is using.</description>
-      </int>
-    </group>
-    <group>
-      <name>Display</name>
-      <description>Presentation-only knobs. Per BroadcastTimeTN Section 2.4.1 the wire format is always 24-hour; the display is a node-local choice.</description>
-      <int size="1">
-        <name>Time Format</name>
-        <description>How the big readout renders the hour.</description>
-        <map>
-          <relation><property>0</property><value>24-hour</value></relation>
-          <relation><property>1</property><value>12-hour with AM/PM</value></relation>
-        </map>
-      </int>
-      <int size="1">
-        <name>Auto-query at login</name>
-        <description>If enabled, the display sends a Query event right after login completes so the producer issues its Section 6.3 burst and the display catches up immediately rather than waiting for the next minute tick.</description>
-        <map>
-          <relation><property>0</property><value>Disabled</value></relation>
-          <relation><property>1</property><value>Enabled</value></relation>
-        </map>
-      </int>
-      <int size="1">
-        <name>Local Interpolation</name>
-        <description>If enabled, the consumer calls start() at login so the library advances time between Report Time events. Per BroadcastTimeTN Section 2.6 a clock display should keep its own internal clock to extrapolate fast-time accurately for at least one real-world hour without divergence.</description>
-        <map>
-          <relation><property>0</property><value>Disabled (snap on each Report)</value></relation>
-          <relation><property>1</property><value>Enabled (advance locally)</value></relation>
-        </map>
-      </int>
+      <name>Configuration</name>
+      <description>Node configuration settings</description>
     </group>
   </segment>
 </cdi>

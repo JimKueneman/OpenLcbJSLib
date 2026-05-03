@@ -399,6 +399,24 @@ export class OpenLcbNode {
         );
     }
 
+    /**
+     * Ask a remote node for its Simple Node Information (manufacturer name,
+     * model, hardware/software version, user-assigned name + description, and
+     * the two version-id bytes).  The remote node replies with a Simple Node
+     * Info Reply that surfaces via the runtime-level
+     * `onSimpleNodeInfoReply(sourceId, sourceAlias, fields)` callback.
+     *
+     * @param {number} destAlias       12-bit CAN alias of the remote node.
+     * @param {bigint} [destNodeId=0n] Optional 48-bit NodeID; pass 0n to
+     *                                  address purely by alias.
+     */
+    sendSimpleNodeInfoRequest(destAlias, destNodeId = 0n) {
+        _throwIfError(
+            this._api.sendSnipRequest(this.id, destAlias | 0, BigInt(destNodeId)),
+            'node.sendSimpleNodeInfoRequest',
+        );
+    }
+
     // ------------------------------------------------------------------------
     // Consumer / producer registration
     // ------------------------------------------------------------------------

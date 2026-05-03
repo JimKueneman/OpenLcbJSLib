@@ -568,193 +568,200 @@ var OpenLCB = (() => {
         var alias = $4 & 4095;
         Module.onVerifiedNodeId(nid, sid, alias);
       }
-    }, 3632: () => {
+    }, 3632: ($0, $1, $2, $3) => {
+      if (Module.onSnipReply) {
+        var sid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
+        var alias = $2 & 4095;
+        var msgPtr = $3 >>> 0;
+        Module.onSnipReply(sid, alias, msgPtr);
+      }
+    }, 3807: () => {
       if (Module.on100msTimer) {
         Module.on100msTimer();
       }
-    }, 3688: ($0, $1) => {
+    }, 3863: ($0, $1) => {
       if (Module.onLoginComplete) {
         Module.onLoginComplete(BigInt($0) | BigInt($1) << 32n);
       }
-    }, 3782: ($0, $1, $2, $3, $4, $5) => {
+    }, 3957: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onConsumedEventIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumedEventIdentified(nid, $4, eid, $5);
       }
-    }, 3968: ($0, $1, $2, $3, $4) => {
+    }, 4143: ($0, $1, $2, $3, $4) => {
       if (Module.onConsumedEventPcer) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumedEventPcer(nid, $4, eid);
       }
-    }, 4138: ($0, $1, $2, $3) => {
+    }, 4313: ($0, $1, $2, $3) => {
       if (Module.onEventLearn) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onEventLearn(nid, eid);
       }
-    }, 4290: ($0, $1, $2, $3) => {
+    }, 4465: ($0, $1, $2, $3) => {
       if (Module.onConsumerRangeIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerRangeIdentified(nid, eid);
       }
-    }, 4468: ($0, $1, $2, $3) => {
+    }, 4643: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedUnknown) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedUnknown(nid, eid);
       }
-    }, 4650: ($0, $1, $2, $3) => {
+    }, 4825: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedSet) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedSet(nid, eid);
       }
-    }, 4824: ($0, $1, $2, $3) => {
+    }, 4999: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedClear) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedClear(nid, eid);
       }
-    }, 5002: ($0, $1, $2, $3) => {
+    }, 5177: ($0, $1, $2, $3) => {
       if (Module.onConsumerIdentifiedReserved) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onConsumerIdentifiedReserved(nid, eid);
       }
-    }, 5186: ($0, $1, $2, $3) => {
+    }, 5361: ($0, $1, $2, $3) => {
       if (Module.onProducerRangeIdentified) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerRangeIdentified(nid, eid);
       }
-    }, 5364: ($0, $1, $2, $3) => {
+    }, 5539: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedUnknown) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedUnknown(nid, eid);
       }
-    }, 5546: ($0, $1, $2, $3) => {
+    }, 5721: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedSet) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedSet(nid, eid);
       }
-    }, 5720: ($0, $1, $2, $3) => {
+    }, 5895: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedClear) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedClear(nid, eid);
       }
-    }, 5898: ($0, $1, $2, $3) => {
+    }, 6073: ($0, $1, $2, $3) => {
       if (Module.onProducerIdentifiedReserved) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onProducerIdentifiedReserved(nid, eid);
       }
-    }, 6082: ($0, $1, $2, $3) => {
+    }, 6257: ($0, $1, $2, $3) => {
       if (Module.onPcEventReport) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onPcEventReport(nid, eid);
       }
-    }, 6240: ($0, $1, $2, $3, $4, $5) => {
+    }, 6415: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onPcEventReportWithPayload) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var eid = BigInt($2) | BigInt($3) << 32n;
         Module.onPcEventReportWithPayload(nid, eid, $4, $5);
       }
-    }, 6428: ($0, $1, $2, $3) => {
+    }, 6603: ($0, $1, $2, $3) => {
       if (Module.onBroadcastTimeChanged) {
         var cid = BigInt($0) | BigInt($1) << 32n;
         Module.onBroadcastTimeChanged(cid, $2, $3);
       }
-    }, 6559: ($0, $1, $2, $3, $4, $5) => {
+    }, 6734: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onBroadcastTimeReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastTimeReceived(nid, cid, $4, $5);
       }
-    }, 6741: ($0, $1, $2, $3, $4, $5) => {
+    }, 6916: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onBroadcastDateReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastDateReceived(nid, cid, $4, $5);
       }
-    }, 6923: ($0, $1, $2, $3, $4) => {
+    }, 7098: ($0, $1, $2, $3, $4) => {
       if (Module.onBroadcastYearReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastYearReceived(nid, cid, $4);
       }
-    }, 7101: ($0, $1, $2, $3, $4) => {
+    }, 7276: ($0, $1, $2, $3, $4) => {
       if (Module.onBroadcastRateReceived) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastRateReceived(nid, cid, $4);
       }
-    }, 7279: ($0, $1, $2, $3) => {
+    }, 7454: ($0, $1, $2, $3) => {
       if (Module.onBroadcastClockStarted) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastClockStarted(nid, cid);
       }
-    }, 7453: ($0, $1, $2, $3) => {
+    }, 7628: ($0, $1, $2, $3) => {
       if (Module.onBroadcastClockStopped) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastClockStopped(nid, cid);
       }
-    }, 7627: ($0, $1, $2, $3) => {
+    }, 7802: ($0, $1, $2, $3) => {
       if (Module.onBroadcastDateRollover) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onBroadcastDateRollover(nid, cid);
       }
-    }, 7801: ($0, $1, $2) => {
+    }, 7976: ($0, $1, $2) => {
       if (Module.onTrainSpeedChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainSpeedChanged(nid, $2);
       }
-    }, 7922: ($0, $1, $2, $3) => {
+    }, 8097: ($0, $1, $2, $3) => {
       if (Module.onTrainFunctionChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainFunctionChanged(nid, $2 >>> 0, $3);
       }
-    }, 8059: ($0, $1, $2) => {
+    }, 8234: ($0, $1, $2) => {
       if (Module.onTrainEmergencyEntered) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainEmergencyEntered(nid, $2);
       }
-    }, 8188: ($0, $1, $2) => {
+    }, 8363: ($0, $1, $2) => {
       if (Module.onTrainEmergencyExited) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainEmergencyExited(nid, $2);
       }
-    }, 8315: ($0, $1, $2, $3) => {
+    }, 8490: ($0, $1, $2, $3) => {
       if (Module.onTrainControllerAssigned) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainControllerAssigned(nid, cid);
       }
-    }, 8493: ($0, $1) => {
+    }, 8668: ($0, $1) => {
       if (Module.onTrainControllerReleased) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainControllerReleased(nid);
       }
-    }, 8622: ($0, $1) => {
+    }, 8797: ($0, $1) => {
       if (Module.onTrainListenerChanged) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainListenerChanged(nid);
       }
-    }, 8745: ($0, $1) => {
+    }, 8920: ($0, $1) => {
       if (Module.onTrainHeartbeatTimeout) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainHeartbeatTimeout(nid);
       }
-    }, 8870: ($0, $1, $2, $3, $4, $5) => {
+    }, 9045: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onTrainControllerAssignRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var curr = BigInt($2) | BigInt($3) << 32n;
@@ -762,75 +769,75 @@ var OpenLCB = (() => {
         return Module.onTrainControllerAssignRequest(nid, curr, rq) ? 1 : 0;
       }
       return 1;
-    }, 9132: ($0, $1, $2, $3) => {
+    }, 9307: ($0, $1, $2, $3) => {
       if (Module.onTrainControllerChangedRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var new_ctrl = BigInt($2) | BigInt($3) << 32n;
         return Module.onTrainControllerChangedRequest(nid, new_ctrl) ? 1 : 0;
       }
       return 1;
-    }, 9357: ($0, $1, $2, $3, $4, $5) => {
+    }, 9532: ($0, $1, $2, $3, $4, $5) => {
       if (Module.onTrainQuerySpeedsReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainQuerySpeedsReply(nid, $2, $3, $4, $5);
       }
-    }, 9498: ($0, $1, $2, $3) => {
+    }, 9673: ($0, $1, $2, $3) => {
       if (Module.onTrainQueryFunctionReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainQueryFunctionReply(nid, $2 >>> 0, $3);
       }
-    }, 9641: ($0, $1, $2, $3, $4) => {
+    }, 9816: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainControllerAssignReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cur = BigInt($3) | BigInt($4) << 32n;
         Module.onTrainControllerAssignReply(nid, $2, cur);
       }
-    }, 9829: ($0, $1, $2, $3, $4) => {
+    }, 10004: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainControllerQueryReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var cid = BigInt($3) | BigInt($4) << 32n;
         Module.onTrainControllerQueryReply(nid, $2, cid);
       }
-    }, 10015: ($0, $1, $2) => {
+    }, 10190: ($0, $1, $2) => {
       if (Module.onTrainControllerChangedNotifyReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainControllerChangedNotifyReply(nid, $2);
       }
-    }, 10168: ($0, $1, $2, $3, $4) => {
+    }, 10343: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainListenerAttachReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainListenerAttachReply(nid, lnode, $4);
       }
-    }, 10356: ($0, $1, $2, $3, $4) => {
+    }, 10531: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainListenerDetachReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($2) | BigInt($3) << 32n;
         Module.onTrainListenerDetachReply(nid, lnode, $4);
       }
-    }, 10544: ($0, $1, $2, $3, $4, $5, $6) => {
+    }, 10719: ($0, $1, $2, $3, $4, $5, $6) => {
       if (Module.onTrainListenerQueryReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         var lnode = BigInt($5) | BigInt($6) << 32n;
         Module.onTrainListenerQueryReply(nid, $2, $3, $4, lnode);
       }
-    }, 10738: ($0, $1, $2) => {
+    }, 10913: ($0, $1, $2) => {
       if (Module.onTrainReserveReply) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainReserveReply(nid, $2);
       }
-    }, 10859: ($0, $1, $2) => {
+    }, 11034: ($0, $1, $2) => {
       if (Module.onTrainHeartbeatRequest) {
         var nid = BigInt($0) | BigInt($1) << 32n;
         Module.onTrainHeartbeatRequest(nid, $2 >>> 0);
       }
-    }, 10994: ($0, $1, $2, $3) => {
+    }, 11169: ($0, $1, $2, $3) => {
       if (Module.onTrainSearchMatched) {
         var nid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var eid = BigInt($2 >>> 0) | BigInt($3 >>> 0) << 32n;
         Module.onTrainSearchMatched(nid, eid);
       }
-    }, 11186: ($0, $1) => {
+    }, 11361: ($0, $1) => {
       if (Module.onTrainSearchNoMatch) {
         var eid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var v = Module.onTrainSearchNoMatch(eid);
@@ -838,36 +845,36 @@ var OpenLCB = (() => {
         if (typeof v === "number") return v;
       }
       return 0;
-    }, 11417: ($0, $1, $2, $3, $4) => {
+    }, 11592: ($0, $1, $2, $3, $4) => {
       if (Module.onTrainSearchReply) {
         var sid = BigInt($0 >>> 0) | BigInt($1 >>> 0) << 32n;
         var alias = $2 & 4095;
         var eid = BigInt($3 >>> 0) | BigInt($4 >>> 0) << 32n;
         Module.onTrainSearchReply(sid, alias, eid);
       }
-    }, 11636: ($0) => {
+    }, 11811: ($0) => {
       if (Module.onStreamInitiateRequest) {
         return Module.onStreamInitiateRequest($0) ? 1 : 0;
       }
       return 1;
-    }, 11741: ($0) => {
+    }, 11916: ($0) => {
       if (Module.onStreamInitiateReply) {
         Module.onStreamInitiateReply($0);
       }
-    }, 11817: ($0) => {
+    }, 11992: ($0) => {
       if (Module.onStreamDataReceived) {
         Module.onStreamDataReceived($0);
       }
-    }, 11891: ($0) => {
+    }, 12066: ($0) => {
       if (Module.onStreamDataProceed) {
         Module.onStreamDataProceed($0);
       }
-    }, 11963: ($0) => {
+    }, 12138: ($0) => {
       if (Module.onStreamComplete) {
         Module.onStreamComplete($0);
       }
     } };
-    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_set_heartbeat_timeout, _wasm_train_get_heartbeat_timeout, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_train_get_reserved_by_node_id, _wasm_train_get_listener_count, _wasm_train_get_listener_at, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_send_simple_node_info_request, _wasm_snip_extract_manufacturer_version_id, _wasm_snip_extract_user_version_id, _wasm_snip_extract_name, _wasm_snip_extract_model, _wasm_snip_extract_hardware_version, _wasm_snip_extract_software_version, _wasm_snip_extract_user_name, _wasm_snip_extract_user_description, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_set_heartbeat_timeout, _wasm_train_get_heartbeat_timeout, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_train_get_reserved_by_node_id, _wasm_train_get_listener_count, _wasm_train_get_listener_at, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
     function assignWasmExports(wasmExports2) {
       _wasm_initialize = Module["_wasm_initialize"] = wasmExports2["wasm_initialize"];
       _wasm_run = Module["_wasm_run"] = wasmExports2["wasm_run"];
@@ -890,6 +897,15 @@ var OpenLCB = (() => {
       _wasm_send_initialization_event = Module["_wasm_send_initialization_event"] = wasmExports2["wasm_send_initialization_event"];
       _wasm_send_verify_node_id_addressed = Module["_wasm_send_verify_node_id_addressed"] = wasmExports2["wasm_send_verify_node_id_addressed"];
       _wasm_send_verify_node_id_global = Module["_wasm_send_verify_node_id_global"] = wasmExports2["wasm_send_verify_node_id_global"];
+      _wasm_send_simple_node_info_request = Module["_wasm_send_simple_node_info_request"] = wasmExports2["wasm_send_simple_node_info_request"];
+      _wasm_snip_extract_manufacturer_version_id = Module["_wasm_snip_extract_manufacturer_version_id"] = wasmExports2["wasm_snip_extract_manufacturer_version_id"];
+      _wasm_snip_extract_user_version_id = Module["_wasm_snip_extract_user_version_id"] = wasmExports2["wasm_snip_extract_user_version_id"];
+      _wasm_snip_extract_name = Module["_wasm_snip_extract_name"] = wasmExports2["wasm_snip_extract_name"];
+      _wasm_snip_extract_model = Module["_wasm_snip_extract_model"] = wasmExports2["wasm_snip_extract_model"];
+      _wasm_snip_extract_hardware_version = Module["_wasm_snip_extract_hardware_version"] = wasmExports2["wasm_snip_extract_hardware_version"];
+      _wasm_snip_extract_software_version = Module["_wasm_snip_extract_software_version"] = wasmExports2["wasm_snip_extract_software_version"];
+      _wasm_snip_extract_user_name = Module["_wasm_snip_extract_user_name"] = wasmExports2["wasm_snip_extract_user_name"];
+      _wasm_snip_extract_user_description = Module["_wasm_snip_extract_user_description"] = wasmExports2["wasm_snip_extract_user_description"];
       _wasm_register_consumer_eventid = Module["_wasm_register_consumer_eventid"] = wasmExports2["wasm_register_consumer_eventid"];
       _wasm_register_producer_eventid = Module["_wasm_register_producer_eventid"] = wasmExports2["wasm_register_producer_eventid"];
       _wasm_clear_consumer_eventids = Module["_wasm_clear_consumer_eventids"] = wasmExports2["wasm_clear_consumer_eventids"];
@@ -1144,21 +1160,38 @@ var OpenLCB = (() => {
   var EVENT_ID_TRAIN = 72339069014639363n;
   var EVENT_ID_TRAIN_PROXY = 72339069014639364n;
   var EVENT_RANGE_COUNT_1 = 0;
-  var EVENT_RANGE_COUNT_1024 = 1024;
-  var EVENT_RANGE_COUNT_128 = 128;
-  var EVENT_RANGE_COUNT_16 = 16;
-  var EVENT_RANGE_COUNT_16384 = 16384;
-  var EVENT_RANGE_COUNT_2 = 2;
-  var EVENT_RANGE_COUNT_2048 = 2048;
-  var EVENT_RANGE_COUNT_256 = 256;
-  var EVENT_RANGE_COUNT_32 = 32;
-  var EVENT_RANGE_COUNT_32768 = 32768;
-  var EVENT_RANGE_COUNT_4 = 4;
-  var EVENT_RANGE_COUNT_4096 = 4096;
-  var EVENT_RANGE_COUNT_512 = 512;
-  var EVENT_RANGE_COUNT_64 = 64;
-  var EVENT_RANGE_COUNT_8 = 8;
-  var EVENT_RANGE_COUNT_8192 = 8192;
+  var EVENT_RANGE_COUNT_1024 = 10;
+  var EVENT_RANGE_COUNT_1048576 = 20;
+  var EVENT_RANGE_COUNT_1073741824 = 30;
+  var EVENT_RANGE_COUNT_128 = 7;
+  var EVENT_RANGE_COUNT_131072 = 17;
+  var EVENT_RANGE_COUNT_134217728 = 27;
+  var EVENT_RANGE_COUNT_16 = 4;
+  var EVENT_RANGE_COUNT_16384 = 14;
+  var EVENT_RANGE_COUNT_16777216 = 24;
+  var EVENT_RANGE_COUNT_2 = 1;
+  var EVENT_RANGE_COUNT_2048 = 11;
+  var EVENT_RANGE_COUNT_2097152 = 21;
+  var EVENT_RANGE_COUNT_2147483648 = 31;
+  var EVENT_RANGE_COUNT_256 = 8;
+  var EVENT_RANGE_COUNT_262144 = 18;
+  var EVENT_RANGE_COUNT_268435456 = 28;
+  var EVENT_RANGE_COUNT_32 = 5;
+  var EVENT_RANGE_COUNT_32768 = 15;
+  var EVENT_RANGE_COUNT_33554432 = 25;
+  var EVENT_RANGE_COUNT_4 = 2;
+  var EVENT_RANGE_COUNT_4096 = 12;
+  var EVENT_RANGE_COUNT_4194304 = 22;
+  var EVENT_RANGE_COUNT_4294967296 = 32;
+  var EVENT_RANGE_COUNT_512 = 9;
+  var EVENT_RANGE_COUNT_524288 = 19;
+  var EVENT_RANGE_COUNT_536870912 = 29;
+  var EVENT_RANGE_COUNT_64 = 6;
+  var EVENT_RANGE_COUNT_65536 = 16;
+  var EVENT_RANGE_COUNT_67108864 = 26;
+  var EVENT_RANGE_COUNT_8 = 3;
+  var EVENT_RANGE_COUNT_8192 = 13;
+  var EVENT_RANGE_COUNT_8388608 = 23;
   var EVENT_STATUS_CLEAR = 2;
   var EVENT_STATUS_SET = 1;
   var EVENT_STATUS_UNKNOWN = 0;
@@ -1327,7 +1360,24 @@ var OpenLCB = (() => {
     EVENT_RANGE_COUNT_4096,
     EVENT_RANGE_COUNT_8192,
     EVENT_RANGE_COUNT_16384,
-    EVENT_RANGE_COUNT_32768
+    EVENT_RANGE_COUNT_32768,
+    EVENT_RANGE_COUNT_65536,
+    EVENT_RANGE_COUNT_131072,
+    EVENT_RANGE_COUNT_262144,
+    EVENT_RANGE_COUNT_524288,
+    EVENT_RANGE_COUNT_1048576,
+    EVENT_RANGE_COUNT_2097152,
+    EVENT_RANGE_COUNT_4194304,
+    EVENT_RANGE_COUNT_8388608,
+    EVENT_RANGE_COUNT_16777216,
+    EVENT_RANGE_COUNT_33554432,
+    EVENT_RANGE_COUNT_67108864,
+    EVENT_RANGE_COUNT_134217728,
+    EVENT_RANGE_COUNT_268435456,
+    EVENT_RANGE_COUNT_536870912,
+    EVENT_RANGE_COUNT_1073741824,
+    EVENT_RANGE_COUNT_2147483648,
+    EVENT_RANGE_COUNT_4294967296
   });
   var event_status_enum = Object.freeze({
     EVENT_STATUS_UNKNOWN,
@@ -2090,6 +2140,23 @@ var OpenLCB = (() => {
         "node.sendVerifyNodeIdGlobal"
       );
     }
+    /**
+     * Ask a remote node for its Simple Node Information (manufacturer name,
+     * model, hardware/software version, user-assigned name + description, and
+     * the two version-id bytes).  The remote node replies with a Simple Node
+     * Info Reply that surfaces via the runtime-level
+     * `onSimpleNodeInfoReply(sourceId, sourceAlias, fields)` callback.
+     *
+     * @param {number} destAlias       12-bit CAN alias of the remote node.
+     * @param {bigint} [destNodeId=0n] Optional 48-bit NodeID; pass 0n to
+     *                                  address purely by alias.
+     */
+    sendSimpleNodeInfoRequest(destAlias, destNodeId = 0n) {
+      _throwIfError(
+        this._api.sendSnipRequest(this.id, destAlias | 0, BigInt(destNodeId)),
+        "node.sendSimpleNodeInfoRequest"
+      );
+    }
     // ------------------------------------------------------------------------
     // Consumer / producer registration
     // ------------------------------------------------------------------------
@@ -2227,6 +2294,13 @@ var OpenLCB = (() => {
       // because the C callback isn't scoped to a particular throttle
       // node — replies go to whatever throttle is interested.
       onTrainSearchReply: (sourceId, sourceAlias, eid) => dispatcher.onTrainSearchReply(BigInt(sourceId), sourceAlias, BigInt(eid)),
+      // Simple Node Info Protocol reply — fires when a remote node
+      // replies to a Simple Node Info Request.  msgPtr is a transient
+      // pointer valid only for the duration of this callback; the
+      // dispatcher must read all fields synchronously before returning
+      // (the runtime turns msgPtr into a fully-resolved JS object before
+      // invoking the user-level callback).
+      onSnipReply: (sourceId, sourceAlias, msgPtr) => dispatcher.onSnipReply(BigInt(sourceId), sourceAlias, msgPtr >>> 0),
       // Broadcast time
       onBroadcastTimeChanged: (clockId, hour, minute) => dispatcher.onBroadcastTimeChanged(BigInt(clockId), hour, minute),
       onBroadcastTimeReceived: (nid, clockId, a, b) => dispatch(nid, "onBroadcastTimeReceived", BigInt(clockId), a, b),
@@ -2278,6 +2352,19 @@ var OpenLCB = (() => {
       sendInit: c("wasm_send_initialization_event", "number", ["bigint"]),
       sendVerifyAddressed: c("wasm_send_verify_node_id_addressed", "number", ["bigint", "number", "bigint"]),
       sendVerifyGlobal: c("wasm_send_verify_node_id_global", "number", ["bigint"]),
+      // Simple Node Info Protocol — outbound request and reply-payload
+      // extractors.  The extractors take a transient msgPtr supplied by
+      // the onSnipReply hook; runtime.js wraps them so the user code
+      // never touches the raw pointer.
+      sendSnipRequest: c("wasm_send_simple_node_info_request", "number", ["bigint", "number", "bigint"]),
+      snipExtractMfgVer: c("wasm_snip_extract_manufacturer_version_id", "number", ["number"]),
+      snipExtractUserVer: c("wasm_snip_extract_user_version_id", "number", ["number"]),
+      snipExtractName: c("wasm_snip_extract_name", "number", ["number", "number", "number"]),
+      snipExtractModel: c("wasm_snip_extract_model", "number", ["number", "number", "number"]),
+      snipExtractHwVer: c("wasm_snip_extract_hardware_version", "number", ["number", "number", "number"]),
+      snipExtractSwVer: c("wasm_snip_extract_software_version", "number", ["number", "number", "number"]),
+      snipExtractUserName: c("wasm_snip_extract_user_name", "number", ["number", "number", "number"]),
+      snipExtractUserDesc: c("wasm_snip_extract_user_description", "number", ["number", "number", "number"]),
       regCEvent: c("wasm_register_consumer_eventid", "number", ["bigint", "bigint", "number"]),
       regPEvent: c("wasm_register_producer_eventid", "number", ["bigint", "bigint", "number"]),
       clearCEvents: c("wasm_clear_consumer_eventids", "number", ["bigint"]),
@@ -2431,7 +2518,7 @@ var OpenLCB = (() => {
           try {
             const ok = api.btExtractRate(BigInt(eid), ptr);
             if (ok !== 1) return null;
-            return Module.HEAP16[ptr >> 1];
+            return new DataView(Module.HEAPU8.buffer, ptr, 2).getInt16(0, true);
           } finally {
             api.free(ptr);
           }
@@ -2484,6 +2571,38 @@ var OpenLCB = (() => {
       })
     };
   }
+  var SNIP_BUF_MAX = 64;
+  function _extractSnip(api, Module, msgPtr) {
+    const buf = api.malloc(SNIP_BUF_MAX);
+    const readString = (extractFn) => {
+      if (!buf) return "";
+      const written = extractFn(msgPtr, buf, SNIP_BUF_MAX) | 0;
+      if (written <= 0) return "";
+      const end = Math.min(written, SNIP_BUF_MAX);
+      const slice = Module.HEAPU8.subarray(buf, buf + end);
+      let nulAt = slice.indexOf(0);
+      if (nulAt < 0) nulAt = slice.length;
+      return new TextDecoder("utf-8").decode(slice.subarray(0, nulAt));
+    };
+    const readByte = (extractFn) => {
+      const v = extractFn(msgPtr) | 0;
+      return v < 0 ? null : v;
+    };
+    try {
+      return {
+        manufacturerVersionId: readByte(api.snipExtractMfgVer),
+        userVersionId: readByte(api.snipExtractUserVer),
+        manufacturerName: readString(api.snipExtractName),
+        model: readString(api.snipExtractModel),
+        hardwareVersion: readString(api.snipExtractHwVer),
+        softwareVersion: readString(api.snipExtractSwVer),
+        userName: readString(api.snipExtractUserName),
+        userDescription: readString(api.snipExtractUserDesc)
+      };
+    } finally {
+      if (buf) api.free(buf);
+    }
+  }
   var OpenLcb = class _OpenLcb {
     /** @internal — use OpenLcb.create(). */
     constructor() {
@@ -2511,7 +2630,8 @@ var OpenLCB = (() => {
      * @param {object} opts
      * @param {object} opts.transport   Transport with connect/disconnect/send + onMessage/onError/onStateChange
      * @param {object} [opts.callbacks] Runtime-level callbacks: onTransportConnect/Disconnect/Error, on100msTimer,
-     *                                  onBroadcastTimeChanged, onStream*
+     *                                  onBroadcastTimeChanged, onTrainSearchNoMatch, onTrainSearchReply,
+     *                                  onVerifiedNodeId, onSimpleNodeInfoReply, onStream*
      * @returns {Promise<OpenLcb>}
      */
     static async create(opts) {
@@ -2554,6 +2674,16 @@ var OpenLCB = (() => {
         onVerifiedNodeId: (receivingNodeId, sourceId, sourceAlias) => {
           const node = self._nodes.get(BigInt(receivingNodeId));
           self._callbacks.onVerifiedNodeId?.(node ?? null, sourceId, sourceAlias);
+        },
+        // Simple Node Info reply — fires when a remote node answers a
+        // request issued via OpenLcbNode#sendSimpleNodeInfoRequest.  The
+        // raw msgPtr is only valid during this hook, so we fully extract
+        // the payload before invoking the user's callback.  Routes to
+        // opts.callbacks.onSimpleNodeInfoReply(sourceId, sourceAlias, fields).
+        onSnipReply: (sourceId, sourceAlias, msgPtr) => {
+          const cb = self._callbacks.onSimpleNodeInfoReply;
+          if (!cb) return;
+          cb(sourceId, sourceAlias, _extractSnip(self._api, self._Module, msgPtr));
         },
         onStreamInitiateRequest: (ptr) => self._callbacks.onStreamInitiateRequest?.(ptr) ?? false,
         onStreamInitiateReply: (ptr) => self._callbacks.onStreamInitiateReply?.(ptr),

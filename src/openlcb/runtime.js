@@ -54,12 +54,14 @@ function buildCodecNamespaces(api, Module) {
                 return r < 0 ? null : r;
             },
             extractRate: (eid) => {
-                // Needs a heap slot for the signed int16 out-param.
+                // Needs a heap slot for the signed int16 out-param.  Read it
+                // back via DataView over HEAPU8.buffer because this WASM build
+                // only exports HEAPU8 (no HEAP16/HEAP32 typed views).
                 const ptr = api.malloc(2);
                 try {
                     const ok = api.btExtractRate(BigInt(eid), ptr);
                     if (ok !== 1) return null;
-                    return Module.HEAP16[ptr >> 1];
+                    return new DataView(Module.HEAPU8.buffer, ptr, 2).getInt16(0, true);
                 } finally {
                     api.free(ptr);
                 }
@@ -117,6 +119,53 @@ function buildCodecNamespaces(api, Module) {
 }
 
 // ---------------------------------------------------------------------------
+// SNIP reply extractor — turns the C-side msg_ptr into a JS object.
+//
+// The pointer is only valid for the duration of the on_snip_reply callback,
+// so the runtime calls this synchronously inside the dispatcher before
+// invoking any user-level handler.  Strings are read out of HEAPU8 as
+// NUL-terminated UTF-8.  Manufacturer/user version IDs are 1-byte values
+// returned as ints (or null when the C extractor reports failure).
+// ---------------------------------------------------------------------------
+
+const SNIP_BUF_MAX = 64;   // matches the largest USER_DEFINED_*_LEN in CLib
+
+function _extractSnip(api, Module, msgPtr) {
+    const buf = api.malloc(SNIP_BUF_MAX);
+    const readString = (extractFn) => {
+        if (!buf) return '';
+        const written = extractFn(msgPtr, buf, SNIP_BUF_MAX) | 0;
+        if (written <= 0) return '';
+        // Strip the trailing NUL the C side includes in its byte count.
+        const end = Math.min(written, SNIP_BUF_MAX);
+        const slice = Module.HEAPU8.subarray(buf, buf + end);
+        // Trim at first 0 byte regardless of the count, in case the C side
+        // returns a length that includes terminator(s) we don't want.
+        let nulAt = slice.indexOf(0);
+        if (nulAt < 0) nulAt = slice.length;
+        return new TextDecoder('utf-8').decode(slice.subarray(0, nulAt));
+    };
+    const readByte = (extractFn) => {
+        const v = extractFn(msgPtr) | 0;
+        return v < 0 ? null : v;
+    };
+    try {
+        return {
+            manufacturerVersionId: readByte(api.snipExtractMfgVer),
+            userVersionId:         readByte(api.snipExtractUserVer),
+            manufacturerName:      readString(api.snipExtractName),
+            model:                 readString(api.snipExtractModel),
+            hardwareVersion:       readString(api.snipExtractHwVer),
+            softwareVersion:       readString(api.snipExtractSwVer),
+            userName:              readString(api.snipExtractUserName),
+            userDescription:       readString(api.snipExtractUserDesc),
+        };
+    } finally {
+        if (buf) api.free(buf);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // OpenLcb
 // ---------------------------------------------------------------------------
 
@@ -154,7 +203,8 @@ export class OpenLcb {
      * @param {object} opts
      * @param {object} opts.transport   Transport with connect/disconnect/send + onMessage/onError/onStateChange
      * @param {object} [opts.callbacks] Runtime-level callbacks: onTransportConnect/Disconnect/Error, on100msTimer,
-     *                                  onBroadcastTimeChanged, onStream*
+     *                                  onBroadcastTimeChanged, onTrainSearchNoMatch, onTrainSearchReply,
+     *                                  onVerifiedNodeId, onSimpleNodeInfoReply, onStream*
      * @returns {Promise<OpenLcb>}
      */
     static async create(opts) {
@@ -201,6 +251,16 @@ export class OpenLcb {
             onVerifiedNodeId: (receivingNodeId, sourceId, sourceAlias) => {
                 const node = self._nodes.get(BigInt(receivingNodeId));
                 self._callbacks.onVerifiedNodeId?.(node ?? null, sourceId, sourceAlias);
+            },
+            // Simple Node Info reply — fires when a remote node answers a
+            // request issued via OpenLcbNode#sendSimpleNodeInfoRequest.  The
+            // raw msgPtr is only valid during this hook, so we fully extract
+            // the payload before invoking the user's callback.  Routes to
+            // opts.callbacks.onSimpleNodeInfoReply(sourceId, sourceAlias, fields).
+            onSnipReply: (sourceId, sourceAlias, msgPtr) => {
+                const cb = self._callbacks.onSimpleNodeInfoReply;
+                if (!cb) return;
+                cb(sourceId, sourceAlias, _extractSnip(self._api, self._Module, msgPtr));
             },
             onStreamInitiateRequest: (ptr) => self._callbacks.onStreamInitiateRequest?.(ptr) ?? false,
             onStreamInitiateReply:   (ptr) => self._callbacks.onStreamInitiateReply?.(ptr),

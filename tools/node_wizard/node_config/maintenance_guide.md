@@ -6,7 +6,7 @@ This guide covers how to add, modify, or remove Well Known Events in the Node Co
 
 ## Well Known Events
 
-**Data file:** `js/wke_defs.js` (shared with the file_preview view; loaded by `node_config.html`)
+**Data file:** `js/node_config.js`
 **Data structure:** `WELL_KNOWN_EVENT_GROUPS` (array of group objects)
 
 ### Data Structure
@@ -78,8 +78,7 @@ When you add/modify the data:
 
 | File | Role |
 |------|------|
-| `js/wke_defs.js` | Data definition (`WELL_KNOWN_EVENT_GROUPS`) — shared with file_preview |
-| `js/node_config.js` | UI builder, state get/restore (consumes `WELL_KNOWN_EVENT_GROUPS`) |
+| `js/node_config.js` | Data definition (`WELL_KNOWN_EVENT_GROUPS`), UI builder, state get/restore |
 | `js/codegen.js` | Reads `state.wellKnownEvents` and generates C registration calls |
 | `node_config.html` | Container divs (`wke-producer-list`, `wke-consumer-list`) — no per-event HTML |
 | `node_config.css` | Styles for `.wke-group`, `.wke-group-title` |

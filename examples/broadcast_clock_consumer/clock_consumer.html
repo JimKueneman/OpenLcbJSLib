@@ -4,13 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<title>OpenLCB Broadcast Clock Display</title>
+<title>Layout Clock — Display</title>
 <link rel="stylesheet" href="clock_consumer.css">
 </head>
 <body>
 
 <div class="topbar">
-    <div class="title" id="screenTitle">Connect</div>
+    <div class="title">
+        <span class="role-tag consumer">DISPLAY</span>
+        <span id="screenTitle">Connect</span>
+    </div>
     <span class="pill disconnected" id="statusPill">disconnected</span>
     <button class="btn ghost" id="btnTopDisconnect" hidden>Disconnect</button>
 </div>
@@ -20,9 +23,9 @@
 <!-- =================== CONNECT =================== -->
 <section class="screen active" data-screen="connect">
     <div class="card">
-        <h2>Transport</h2>
-        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
-        <div class="row"><label for="nodeId">Display Node ID</label><input id="nodeId" type="text" value="050101010703"></div>
+        <h2>Connection</h2>
+        <div class="row"><label for="url">JMRI address</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
+        <div class="row"><label for="nodeId">My ID on the network</label><input id="nodeId" type="text" value="050101010703"></div>
         <div class="bar-actions">
             <button class="btn primary grow" id="btnConnect">Connect</button>
             <button class="btn ghost" id="btnDisconnect" disabled>Disconnect</button>
@@ -30,12 +33,28 @@
         <div class="kicker" id="connInfo">Not connected.</div>
     </div>
     <div class="card">
-        <h2>About this exerciser</h2>
+        <h2>Which clocks should this display?</h2>
+        <div class="kicker">
+            A layout can have several clocks at once — for example a fast clock for trains and
+            a real-time clock for room lights. Tick the clocks you want this display to show.
+            You'll be able to switch between them on the next screen.
+        </div>
+        <label class="ck-row"><input type="checkbox" id="ckDefaultFast" checked> Fast clock (default)</label>
+        <label class="ck-row"><input type="checkbox" id="ckDefaultRealtime"> Real-time clock (default)</label>
+        <label class="ck-row"><input type="checkbox" id="ckAlternate1"> Alternate clock 1</label>
+        <label class="ck-row"><input type="checkbox" id="ckAlternate2"> Alternate clock 2</label>
+        <label class="ck-row">
+            <input type="checkbox" id="ckCustom"> Custom clock (its own ID)
+            <input type="text" id="customId" value="020304050608" placeholder="hex" disabled>
+        </label>
+    </div>
+    <div class="card">
+        <h2>What is this?</h2>
         <p class="kicker">
-            Receives every clock event defined by BroadcastTimeS Apr 25, 2021 and lets you
-            send the consumer-side commands defined in spec Section 4.5-4.10. Pair it with the
-            broadcast_clock_source example (or any other generator on the bus) and watch
-            the readout track that producer.
+            This page is a clock face — it listens for time, date, year, and run-speed updates
+            from a clock generator on the network and shows them on screen. You can also drive
+            the generator from here: change the time, change the speed, or start and stop the
+            clock from this page.
         </p>
     </div>
 </section>
@@ -43,48 +62,24 @@
 <!-- =================== CLOCK =================== -->
 <section class="screen" data-screen="clock">
 
-    <!-- ------ Identity selector ------ -->
+    <!-- ------ Showing / focus selector ------ -->
     <div class="card" id="cardIdentity">
         <div class="card-head">
-            <h2>Tracked Clock</h2>
+            <h2>Showing</h2>
             <span class="kicker" id="identityStatus">—</span>
         </div>
         <div class="kicker">
-            Pick the clock this display tracks. The selection drives the upper 6 bytes that
-            <code>setupConsumer</code> uses to register the Consumer Range Identified per
-            spec Section 6.1.
+            Click a clock below to switch to it. Each clock has its own time, date, speed, and
+            running state.
         </div>
-        <div class="chip-group" id="clockIdGroup">
-            <span class="chip on" data-cid="default-fast">Default Fast</span>
-            <span class="chip" data-cid="default-realtime">Default Real-time</span>
-            <span class="chip" data-cid="alternate-1">Alternate 1</span>
-            <span class="chip" data-cid="alternate-2">Alternate 2</span>
-            <span class="chip" data-cid="custom">Custom (48-bit)</span>
-        </div>
-        <div class="row" id="customIdRow" hidden>
-            <label for="customId">Custom 48-bit ID</label>
-            <input id="customId" type="text" value="020304050608" placeholder="hex without dots">
-        </div>
-        <div class="kicker">
-            Resolved upper 6 bytes (Specific Upper Part):
-            <span class="mono" id="clockIdHex">—</span>
-        </div>
-        <div class="bar-actions">
-            <button class="btn primary grow" id="btnSetupConsumer">Setup as Consumer</button>
-            <button class="btn ghost grow" id="btnSetupProducer">Also as Producer (dual-role)</button>
-        </div>
-        <div class="kicker">
-            Most consumers only need <code>setupConsumer</code>. The dual-role button is for
-            testing nodes that mirror Reports back onto the bus (e.g. a slaved generator,
-            BroadcastTimeTN Section 3.11).
-        </div>
+        <div class="chip-group" id="clockIdGroup"><!-- populated by JS at login --></div>
     </div>
 
     <!-- ------ Big readout ------ -->
     <div class="card" id="cardReadout">
         <div class="card-head">
-            <h2>Modeled Time</h2>
-            <span class="pill" id="runPill">Stopped</span>
+            <h2>Current time</h2>
+            <span class="pill" id="runPill">—</span>
         </div>
         <div class="readout">
             <span class="time" id="readTime">--:--</span>
@@ -93,11 +88,11 @@
         <div class="readout-meta">
             <span><b id="readDate">—</b></span>
             <span><b id="readYear">—</b></span>
-            <span>Rate: <b id="readRate">—</b></span>
+            <span>Speed: <b id="readRate">—</b></span>
         </div>
-        <div class="kicker" id="freshness">no events received yet</div>
+        <div class="kicker" id="freshness">no updates received yet</div>
         <div class="row" style="margin-top:6px">
-            <label>Display</label>
+            <label>Show as</label>
             <span class="chip-group" id="formatGroup">
                 <span class="chip on" data-fmt="24">24-hour</span>
                 <span class="chip" data-fmt="12">12-hour</span>
@@ -105,55 +100,49 @@
         </div>
     </div>
 
-    <!-- ------ Liveness panel ------ -->
+    <!-- ------ Predict between updates (no panel — just buttons + line) ------ -->
+    <div class="card" id="cardPredict">
+        <h2>Predict between updates</h2>
+        <div class="kicker">
+            The generator only sends a time update once per minute. Turn on prediction to make
+            this display tick the seconds locally between updates so the time always looks live.
+            Turn it off to only show the values that actually arrive.
+        </div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="btnLocalStart">Predict</button>
+            <button class="btn grow" id="btnLocalStop">Don't predict</button>
+        </div>
+    </div>
+
+    <!-- ------ Receive Activity ------ -->
     <details class="card-details" open>
-        <summary><h2>Receive Activity</h2></summary>
+        <summary><h2>Last updates</h2></summary>
         <div class="content">
             <div class="kicker">
-                Each row shows the last value the per-node callback fired with, the wall-clock
-                age of that value, and the originating event ID. Rates are translated from raw
-                12-bit fixed-point per spec Section 4.4. <code>onBroadcastTimeChanged</code>
-                (runtime-level) drives the smaller "minute change" line because the per-node
-                <code>Time</code> callback only fires on explicit Reports.
+                Each row shows what the generator most recently told us, and how long ago.
+                Green means fresh, amber means stale.
             </div>
             <div class="rx-table">
                 <div class="rx-row" data-evt="time"><span class="lab">Time</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
                 <div class="rx-row" data-evt="date"><span class="lab">Date</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
                 <div class="rx-row" data-evt="year"><span class="lab">Year</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
-                <div class="rx-row" data-evt="rate"><span class="lab">Rate</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
-                <div class="rx-row" data-evt="started"><span class="lab">Start (R)</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
-                <div class="rx-row" data-evt="stopped"><span class="lab">Stop (R)</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
-                <div class="rx-row" data-evt="rollover"><span class="lab">Rollover</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
-                <div class="rx-row" data-evt="changed"><span class="lab">TimeChanged</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
+                <div class="rx-row" data-evt="rate"><span class="lab">Speed</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
+                <div class="rx-row" data-evt="started"><span class="lab">Started</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
+                <div class="rx-row" data-evt="stopped"><span class="lab">Stopped</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
+                <div class="rx-row" data-evt="rollover"><span class="lab">Midnight</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
+                <div class="rx-row" data-evt="changed"><span class="lab">Minute tick</span><span class="val mono" data-field="val">—</span><span class="age" data-field="age">—</span></div>
             </div>
         </div>
     </details>
 
-    <!-- ------ Local interpolation ------ -->
-    <details class="card-details">
-        <summary><h2>Local Interpolation</h2></summary>
-        <div class="content">
-            <div class="kicker">
-                A clock display should keep its own internal clock to extrapolate fast-time
-                between Reports — BroadcastTimeTN Section 2.6.2. <code>start(clockId)</code>
-                tells the library to advance time locally; <code>stop()</code> freezes it
-                until the next Report.
-            </div>
-            <div class="bar-actions">
-                <button class="btn grow" id="btnLocalStart">start()</button>
-                <button class="btn grow" id="btnLocalStop">stop()</button>
-            </div>
-        </div>
-    </details>
-
-    <!-- ------ Consumer commands ------ -->
+    <!-- ------ Control the Clock ------ -->
     <details class="card-details" open>
-        <summary><h2>Send Commands to Producer</h2></summary>
+        <summary><h2>Control the Clock</h2></summary>
         <div class="content">
             <div class="kicker">
-                Spec Section 4.5-4.9. Any node may set a clock generator (Section 6.5) — the
-                generator echoes the new value as a Report immediately, then sends the
-                Section 6.3 sync burst three seconds later.
+                Send commands to the generator on the network. The generator confirms each
+                change by broadcasting the new value back, so you'll see your changes show up
+                in the readout above.
             </div>
 
             <div class="grid-fields">
@@ -164,7 +153,7 @@
                         <input type="number" id="setMinute" min="0" max="59" value="0">
                     </span>
                 </label>
-                <label>Date
+                <label>Date (month/day)
                     <span class="pair">
                         <input type="number" id="setMonth" min="1" max="12" value="10">
                         <span>/</span>
@@ -174,42 +163,42 @@
                 <label>Year
                     <input type="number" id="setYear" min="0" max="4095" value="1953">
                 </label>
-                <label>Rate (raw, x4)
-                    <input type="number" id="setRateRaw" min="-2048" max="2047" value="4">
+                <label>Speed multiplier
+                    <input type="number" id="setRateMult" min="-512" max="511.75" step="0.25" value="1">
                 </label>
-            </div>
-            <div class="kicker">
-                Effective rate: <span class="mono" id="rateEffective">1.00x</span>
             </div>
 
             <div class="btn-grid">
-                <button class="btn" id="btnSetTime">sendSetTime</button>
-                <button class="btn" id="btnSetDate">sendSetDate</button>
-                <button class="btn" id="btnSetYear">sendSetYear</button>
-                <button class="btn" id="btnSetRate">sendSetRate</button>
-                <button class="btn" id="btnCmdStart">sendCommandStart</button>
-                <button class="btn" id="btnCmdStop">sendCommandStop</button>
+                <button class="btn" id="btnSetTime">Set time</button>
+                <button class="btn" id="btnSetDate">Set date</button>
+                <button class="btn" id="btnSetYear">Set year</button>
+                <button class="btn" id="btnSetRate">Set speed</button>
+                <button class="btn" id="btnCmdStart">Start the clock</button>
+                <button class="btn" id="btnCmdStop">Stop the clock</button>
             </div>
 
             <div class="bar-actions">
                 <button class="btn primary grow" id="btnSendQuery">
-                    sendQuery &mdash; ask producer for Section 6.3 burst
+                    Refresh from the generator
                 </button>
+            </div>
+            <div class="kicker">
+                "Refresh" asks the generator to re-send everything (running, speed, year, date,
+                time). Useful if the display ever feels out of sync.
             </div>
         </div>
     </details>
 
-    <!-- ------ Codec / decode ------ -->
+    <!-- ------ Behind the scenes (developers) — codec ------ -->
     <details class="card-details">
-        <summary><h2>Event ID Codec</h2></summary>
+        <summary><h2>Behind the scenes (for developers)</h2></summary>
         <div class="content">
             <div class="kicker">
-                Pure helpers in <code>openlcb.broadcastTime</code>: <code>makeClockId</code>,
-                <code>isTimeEvent</code>, <code>extractClockId</code>, <code>getEventType</code>,
-                <code>extractTime/Date/Year/Rate</code>, <code>createTimeEventId/DateEventId/YearEventId/RateEventId/CommandEventId</code>.
+                Each broadcast is a 64-bit Event ID on the wire. The decode field below is
+                handy when you grab one out of a packet capture.
             </div>
 
-            <div class="kicker" style="margin-top:8px"><b>Built event IDs</b> for the staged values, against the selected clock</div>
+            <div class="kicker" style="margin-top:8px"><b>Built event IDs</b> for the staged values, against the focused clock</div>
             <div class="codec-table">
                 <div><span class="lab">Time (Set?)</span><span class="mono" id="builtTimeReport">—</span><span class="mono" id="builtTimeSet">—</span></div>
                 <div><span class="lab">Date (Set?)</span><span class="mono" id="builtDateReport">—</span><span class="mono" id="builtDateSet">—</span></div>
@@ -227,32 +216,12 @@
         </div>
     </details>
 
-    <!-- ------ Diagnostics ------ -->
-    <details class="card-details">
-        <summary><h2>Diagnostics</h2></summary>
-        <div class="content">
-            <div class="kicker">
-                <code>btIsConsumer/btIsProducer</code> reflect the library's view of the
-                selected clock. They flip to "yes" once setup completes for that role.
-            </div>
-            <div class="diag-row">
-                <span>btIsConsumer:</span><span class="mono" id="diagIsConsumer">—</span>
-            </div>
-            <div class="diag-row">
-                <span>btIsProducer:</span><span class="mono" id="diagIsProducer">—</span>
-            </div>
-            <div class="bar-actions">
-                <button class="btn ghost grow" id="btnRefreshDiag">Refresh</button>
-            </div>
-        </div>
-    </details>
-
 </section>
 
 </main>
 
 <details class="log">
-    <summary>Log</summary>
+    <summary>Activity log</summary>
     <div id="log"></div>
 </details>
 
