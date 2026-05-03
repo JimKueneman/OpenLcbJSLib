@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>OpenLCB Broadcast Clock Generator</title>
+<link rel="stylesheet" href="clock_source.css">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="title" id="screenTitle">Connect</div>
+    <span class="pill disconnected" id="statusPill">disconnected</span>
+    <button class="btn ghost" id="btnTopDisconnect" hidden>Disconnect</button>
+</div>
+
+<main>
+
+<!-- =================== CONNECT =================== -->
+<section class="screen active" data-screen="connect">
+    <div class="card">
+        <h2>Transport</h2>
+        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
+        <div class="row"><label for="nodeId">Generator Node ID</label><input id="nodeId" type="text" value="050101010702"></div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="btnConnect">Connect</button>
+            <button class="btn ghost" id="btnDisconnect" disabled>Disconnect</button>
+        </div>
+        <div class="kicker" id="connInfo">Not connected.</div>
+    </div>
+    <div class="card">
+        <h2>About this exerciser</h2>
+        <p class="kicker">
+            Drives every WASM export tied to BroadcastTimeS Apr 25, 2021. Pick a clock identity,
+            attach as producer (or consumer for testing), and use the panels below to send each
+            event type defined in spec Section 4 and trigger the library-managed sequences from
+            Sections 6.1, 6.3, 6.4 and 6.5.
+        </p>
+    </div>
+</section>
+
+<!-- =================== CLOCK =================== -->
+<section class="screen" data-screen="clock">
+
+    <!-- ------ Identity ------ -->
+    <div class="card" id="cardIdentity">
+        <div class="card-head">
+            <h2>Clock Identity</h2>
+            <span class="kicker" id="identityStatus">—</span>
+        </div>
+        <div class="kicker">
+            Per spec Section 4, every clock event's upper 6 bytes select which clock the event
+            is for. Pick one of the four well-known IDs or supply a 48-bit unique ID under your
+            control.
+        </div>
+        <div class="chip-group" id="clockIdGroup">
+            <span class="chip on" data-cid="default-fast">Default Fast</span>
+            <span class="chip" data-cid="default-realtime">Default Real-time</span>
+            <span class="chip" data-cid="alternate-1">Alternate 1</span>
+            <span class="chip" data-cid="alternate-2">Alternate 2</span>
+            <span class="chip" data-cid="custom">Custom (48-bit)</span>
+        </div>
+        <div class="row" id="customIdRow" hidden>
+            <label for="customId">Custom 48-bit ID</label>
+            <input id="customId" type="text" value="020304050608" placeholder="hex without dots">
+        </div>
+        <div class="kicker">
+            Resolved upper 6 bytes (Specific Upper Part):
+            <span class="mono" id="clockIdHex">—</span>
+        </div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="btnSetupProducer">Setup as Producer</button>
+            <button class="btn ghost grow" id="btnSetupConsumer">Setup as Consumer</button>
+        </div>
+        <div class="kicker">
+            <code>setupProducer</code> wires this node as the authoritative source for the
+            selected clock and emits the Producer + Consumer Range Identified pair from spec
+            Section 6.1. <code>setupConsumer</code> attaches a passive listener — useful for
+            verifying the producer's traffic from a second tab.
+        </div>
+    </div>
+
+    <!-- ------ Live readout ------ -->
+    <div class="card" id="cardReadout">
+        <div class="card-head">
+            <h2>Modeled Time</h2>
+            <span class="pill" id="runPill">Stopped</span>
+        </div>
+        <div class="readout">
+            <span class="time" id="readTime">--:--</span>
+        </div>
+        <div class="readout-meta">
+            <span><b id="readDate">—</b></span>
+            <span><b id="readYear">—</b></span>
+            <span>Rate: <b id="readRate">—</b></span>
+        </div>
+        <div class="kicker">
+            Updates from <code>onBroadcastTimeChanged</code> (runtime-level) and the per-node
+            <code>onBroadcastTimeReceived/DateReceived/YearReceived/RateReceived/ClockStarted/ClockStopped/DateRollover</code>
+            callbacks. The generator's own outbound traffic loops back through these.
+        </div>
+    </div>
+
+    <!-- ------ Local clock advance ------ -->
+    <details class="card-details" open>
+        <summary><h2>Local Clock Advance</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                <code>start(clockId)</code> / <code>stop(clockId)</code> drive the library's
+                internal time advance for this clock. While running, the library also emits the
+                Section 6.2 Report Time stream and the Date Rollover sequence.
+            </div>
+            <div class="bar-actions">
+                <button class="btn grow" id="btnLocalStart">start()</button>
+                <button class="btn grow" id="btnLocalStop">stop()</button>
+            </div>
+        </div>
+    </details>
+
+    <!-- ------ Producer-side wire emission ------ -->
+    <details class="card-details" open>
+        <summary><h2>Producer Reports (wire)</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                Spec Section 4.1-4.4, 4.10-4.11. Each button forces an immediate emission of the
+                corresponding Report event using the values staged below — bypassing any
+                library-internal rate limiting.
+            </div>
+
+            <div class="grid-fields">
+                <label>Time
+                    <span class="pair">
+                        <input type="number" id="repHour"   min="0" max="23" value="6">
+                        <span>:</span>
+                        <input type="number" id="repMinute" min="0" max="59" value="0">
+                    </span>
+                </label>
+                <label>Date
+                    <span class="pair">
+                        <input type="number" id="repMonth" min="1" max="12" value="10">
+                        <span>/</span>
+                        <input type="number" id="repDay"   min="1" max="31" value="3">
+                    </span>
+                </label>
+                <label>Year
+                    <input type="number" id="repYear" min="0" max="4095" value="1953">
+                </label>
+                <label>Rate (raw, x4)
+                    <input type="number" id="repRateRaw" min="-2048" max="2047" value="4">
+                </label>
+            </div>
+            <div class="kicker">
+                Rate is stored as a 12-bit signed fixed-point per spec Section 4.4: the raw value
+                is rate &times; 4. Effective rate: <span class="mono" id="rateEffective">1.00x</span>
+            </div>
+
+            <div class="btn-grid">
+                <button class="btn" id="btnReportTime">sendReportTime</button>
+                <button class="btn" id="btnReportDate">sendReportDate</button>
+                <button class="btn" id="btnReportYear">sendReportYear</button>
+                <button class="btn" id="btnReportRate">sendReportRate</button>
+                <button class="btn" id="btnReportStart">sendStart (Section 4.10)</button>
+                <button class="btn" id="btnReportStop">sendStop (Section 4.10)</button>
+                <button class="btn" id="btnDateRollover">sendDateRollover (Section 4.11)</button>
+                <button class="btn" id="btnQueryReply">sendQueryReply (single)</button>
+            </div>
+
+            <div class="bar-actions">
+                <button class="btn primary grow" id="btnTriggerQueryReply">
+                    triggerQueryReply &mdash; emit Section 6.3 burst now
+                </button>
+            </div>
+            <div class="bar-actions">
+                <button class="btn ghost grow" id="btnTriggerSyncDelay">
+                    triggerSyncDelay &mdash; schedule Section 6.5 burst (3s)
+                </button>
+            </div>
+            <div class="kicker">
+                Section 6.3 burst: Producer Identified Valid for Stop/Start, Rate, Year, Date,
+                Time, plus the next-minute Report Time. This is what a Query reply sends and
+                what the generator emits at startup. <code>triggerSyncDelay</code> schedules
+                that burst 3 seconds out, matching the post-Set-event behavior of Section 6.5.
+            </div>
+        </div>
+    </details>
+
+    <!-- ------ Consumer-style outbound Set commands ------ -->
+    <details class="card-details">
+        <summary><h2>Outbound Set Commands</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                Spec Section 4.5-4.9. These are what a remote throttle would send to control a
+                fast clock. The exerciser ships them so you can verify the producer's
+                Section 6.5 echo + 3-second burst behavior end-to-end on the bus, even with no
+                second node present.
+            </div>
+
+            <div class="btn-grid">
+                <button class="btn" id="btnSetTime">sendSetTime</button>
+                <button class="btn" id="btnSetDate">sendSetDate</button>
+                <button class="btn" id="btnSetYear">sendSetYear</button>
+                <button class="btn" id="btnSetRate">sendSetRate</button>
+                <button class="btn" id="btnCmdStart">sendCommandStart</button>
+                <button class="btn" id="btnCmdStop">sendCommandStop</button>
+                <button class="btn" id="btnSendQuery">sendQuery (Section 4.9)</button>
+            </div>
+            <div class="kicker">
+                The Time/Date/Year/Rate Set commands re-use the values staged in the Reports
+                panel above.
+            </div>
+        </div>
+    </details>
+
+    <!-- ------ Codec / decode ------ -->
+    <details class="card-details">
+        <summary><h2>Event ID Codec</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                Pure helpers in <code>openlcb.broadcastTime</code>: <code>makeClockId</code>,
+                <code>isTimeEvent</code>, <code>extractClockId</code>, <code>getEventType</code>,
+                <code>extractTime/Date/Year/Rate</code>, <code>createTimeEventId/DateEventId/YearEventId/RateEventId/CommandEventId</code>.
+            </div>
+
+            <div class="kicker" style="margin-top:8px"><b>Built event IDs</b> for the staged values, against the selected clock</div>
+            <div class="codec-table">
+                <div><span class="lab">Time (Set?)</span><span class="mono" id="builtTimeReport">—</span><span class="mono" id="builtTimeSet">—</span></div>
+                <div><span class="lab">Date (Set?)</span><span class="mono" id="builtDateReport">—</span><span class="mono" id="builtDateSet">—</span></div>
+                <div><span class="lab">Year (Set?)</span><span class="mono" id="builtYearReport">—</span><span class="mono" id="builtYearSet">—</span></div>
+                <div><span class="lab">Rate (Set?)</span><span class="mono" id="builtRateReport">—</span><span class="mono" id="builtRateSet">—</span></div>
+                <div><span class="lab">Command</span><span class="mono" id="builtCmdQuery">—</span><span class="mono" id="builtCmdStartStop">—</span></div>
+            </div>
+
+            <div class="kicker" style="margin-top:12px"><b>Decode an event ID</b></div>
+            <div class="row">
+                <label for="decodeIn">Hex (with or without dots)</label>
+                <input id="decodeIn" type="text" placeholder="01.01.00.00.01.00.06.00">
+            </div>
+            <div class="kicker mono" id="decodeOut">—</div>
+        </div>
+    </details>
+
+    <!-- ------ Diagnostics / debug ------ -->
+    <details class="card-details">
+        <summary><h2>Diagnostics</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                <code>btIsProducer/btIsConsumer</code> reflect the library's view of the
+                selected clock. They flip to "yes" once setup completes for that role.
+            </div>
+            <div class="diag-row">
+                <span>btIsProducer:</span><span class="mono" id="diagIsProducer">—</span>
+            </div>
+            <div class="diag-row">
+                <span>btIsConsumer:</span><span class="mono" id="diagIsConsumer">—</span>
+            </div>
+            <div class="bar-actions">
+                <button class="btn ghost grow" id="btnRefreshDiag">Refresh</button>
+            </div>
+        </div>
+    </details>
+
+</section>
+
+</main>
+
+<details class="log">
+    <summary>Log</summary>
+    <div id="log"></div>
+</details>
+
+<script>
+// Same JMRI same-origin convenience as the throttle example.
+(() => {
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+    const u = document.getElementById('url');
+    if (!u) return;
+    const wsScheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    u.value = `${wsScheme}//${location.host}/lcc/hub/`;
+})();
+</script>
+<script type="module" src="clock_source.js"></script>
+</body>
+</html>
