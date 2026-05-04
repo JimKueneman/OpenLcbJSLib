@@ -1,0 +1,226 @@
+/* basic_node demo — visual styling that matches the broadcast-time examples.
+ *
+ * Diverged copy of clock_source.css trimmed to the elements basic_node uses
+ * (no chips, no big readout, no codec/diag tables) and extended with a
+ * neutral .role-tag.basic variant + a peer-details dl/dt/dd panel.
+ */
+
+:root {
+    --bg: #0b0f14;
+    --bg-2: #121823;
+    --bg-3: #1a2230;
+    --line: #2a3547;
+    --fg: #e6ecf3;
+    --fg-dim: #8a99ad;
+    --accent: #22d3ee;
+    --accent-2: #0891b2;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --danger: #ef4444;
+    --danger-2: #991b1b;
+    --radius: 14px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, "SF Pro Text", Segoe UI, Roboto, sans-serif;
+    font-size: 15px; line-height: 1.35;
+    overscroll-behavior: none;
+}
+
+body {
+    min-height: 100dvh;
+    max-width: 560px; margin: 0 auto;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+    display: flex; flex-direction: column;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; }
+h1 { font-size: 1.1rem; }
+h2 { font-size: 0.95rem; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+button { font: inherit; color: inherit; }
+input, select {
+    font: inherit; color: inherit;
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px;
+}
+input[type="checkbox"] { width: 18px; height: 18px; padding: 0; cursor: pointer; }
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+code, .mono { font-family: ui-monospace, Menlo, monospace; font-size: 0.86em; color: var(--accent); }
+p { margin: 0; }
+
+/* ---------- top bar ---------- */
+.topbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+}
+.topbar .title { font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px; }
+.role-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.role-tag.basic { background: rgba(138, 153, 173, 0.18); color: var(--fg-dim); border: 1px solid var(--fg-dim); }
+
+/* ---------- status pill ---------- */
+.pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 600;
+    background: var(--bg-3); color: var(--fg-dim);
+    border: 1px solid var(--line);
+}
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--fg-dim); }
+.pill.connected { color: var(--ok); border-color: #14532d; }
+.pill.connected::before { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.pill.connecting { color: var(--warn); border-color: #78350f; }
+.pill.connecting::before { background: var(--warn); }
+.pill.disconnected { color: var(--danger); border-color: #7f1d1d; }
+.pill.disconnected::before { background: var(--danger); }
+
+/* ---------- screens ---------- */
+main { flex: 1; display: flex; flex-direction: column; }
+.screen { display: none; flex: 1; flex-direction: column; padding: 16px; gap: 14px; }
+.screen.active { display: flex; }
+
+.card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.card .kicker p { margin: 0; }
+
+/* Same shape as the clock demos.  flex-wrap lets a trailing button (e.g.
+ * Refresh next to a dropdown) drop to a second line on narrow viewports
+ * instead of squeezing the input/select to zero width. */
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row label { font-size: 0.82rem; color: var(--fg-dim); width: 11em; flex-shrink: 0; }
+.row input, .row select { flex: 1; min-width: 8em; }
+.grow { flex: 1; }
+
+/* Inline checkbox-with-label, same pattern as the clock demos.  The <label>
+ * wraps both the checkbox and the descriptive text so clicking either flips
+ * the state. */
+.ck-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 4px 0;
+    cursor: pointer;
+    user-select: none;
+    color: var(--fg);
+    font-size: 0.9rem;
+}
+.ck-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+/* Cards as <details> — collapsible sections that look identical to .card */
+details.card-details {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0;
+}
+details.card-details > summary {
+    padding: 14px;
+    cursor: pointer;
+    list-style: none;
+}
+details.card-details > summary::-webkit-details-marker { display: none; }
+details.card-details > summary h2 { display: inline-block; margin: 0; }
+details.card-details > summary::after {
+    content: '▸';
+    float: right;
+    color: var(--fg-dim);
+    transition: transform 0.15s;
+}
+details.card-details[open] > summary::after { transform: rotate(90deg); }
+details.card-details[open] > summary { border-bottom: 1px solid var(--line); }
+details.card-details > .content {
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+    background: var(--bg-3); border: 1px solid var(--line); color: var(--fg);
+    padding: 12px 14px; border-radius: 10px; cursor: pointer;
+    font-weight: 600; letter-spacing: 0.01em;
+    transition: transform 0.05s, background 0.15s, border-color 0.15s;
+    text-align: center;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent-2); border-color: var(--accent); color: #021218; }
+.btn.primary:hover { background: var(--accent); }
+.btn.danger { background: var(--danger-2); border-color: var(--danger); color: #fff; }
+.btn.ghost { background: transparent; }
+.btn.compact { padding: 8px 12px; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-row .btn { flex: 1; min-width: 7em; }
+.bar-actions { display: flex; gap: 10px; }
+.bar-actions .btn { flex: 1; }
+
+/* ---------- peer details panel ---------- */
+.peer-details {
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+.peer-details dl {
+    display: grid;
+    grid-template-columns: 8em 1fr;
+    gap: 0.3em 0.8em;
+    margin: 0;
+}
+.peer-details dt { color: var(--fg-dim); }
+.peer-details dd {
+    margin: 0;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 0.82rem;
+    word-break: break-all;
+}
+.peer-details .empty { color: var(--fg-dim); font-style: italic; }
+
+/* ---------- misc ---------- */
+.kicker { color: var(--fg-dim); font-size: 0.8rem; line-height: 1.45; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* log (collapsed by default) */
+details.log {
+    margin: 0 16px 16px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg-2);
+}
+details.log > summary {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--fg-dim);
+    font-size: 0.85rem;
+    list-style: none;
+}
+details.log > summary::-webkit-details-marker { display: none; }
+details.log > summary::after {
+    content: '▸';
+    float: right;
+    color: var(--fg-dim);
+    transition: transform 0.15s;
+}
+details.log[open] > summary::after { transform: rotate(90deg); }
+#log {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    max-height: 22vh; overflow: auto;
+    padding: 8px 12px;
+    color: var(--fg-dim);
+    border-top: 1px solid var(--line);
+}

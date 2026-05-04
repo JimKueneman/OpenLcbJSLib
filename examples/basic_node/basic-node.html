@@ -2,68 +2,105 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>OpenLcbJSLib — Basic Node Example</title>
-<style>
-    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; color: #222; }
-    h1 { font-size: 1.4em; }
-    section { border: 1px solid #ccc; border-radius: 6px; padding: 1em; margin: 1em 0; }
-    label { display: inline-block; width: 11em; }
-    input[type=text] { width: 20em; padding: 0.25em; }
-    button { padding: 0.35em 0.9em; margin-right: 0.5em; }
-    .status { font-weight: bold; }
-    .status.connected { color: #2a7f2a; }
-    .status.connecting { color: #b88600; }
-    .status.disconnected { color: #a00; }
-    #log { font-family: Menlo, Consolas, monospace; font-size: 0.85em; white-space: pre-wrap; height: 14em; overflow: auto; background: #f6f6f6; border: 1px solid #ddd; padding: 0.5em; }
-    .row { margin-bottom: 0.5em; }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>OpenLcbJSLib — Basic Node</title>
+<link rel="stylesheet" href="basic-node.css">
 </head>
 <body>
 
-<h1>OpenLcbJSLib — Basic Node Example</h1>
+<div class="topbar">
+    <div class="title">
+        <span class="role-tag basic">BASIC NODE</span>
+        <span id="screenTitle">Connect</span>
+    </div>
+    <span class="pill disconnected" id="state">disconnected</span>
+    <button class="btn ghost compact" id="btnTopDisconnect" hidden>Disconnect</button>
+</div>
 
-<p>Connects one virtual OpenLCB node to a GridConnect WebSocket server (JMRI,
-an OpenLCB hub, etc.) and lets you publish PC Event Reports. Open the browser
-console to see the full protocol trace.</p>
+<main>
 
-<section>
-    <div class="row">
-        <label for="url">WebSocket URL</label>
-        <input id="url" type="text" value="ws://localhost:12080/lcc/hub/">
-    </div>
-    <div class="row">
-        <label for="nodeId">Node ID (hex)</label>
-        <input id="nodeId" type="text" value="">
-    </div>
-    <div class="row">
-        <label for="consumerCount">Consumer count</label>
-        <input id="consumerCount" type="number" min="0" max="255" value="0">
-    </div>
-    <div class="row">
-        <label for="producerCount">Producer count</label>
-        <input id="producerCount" type="number" min="0" max="255" value="0">
-    </div>
-    <div class="row">
-        <button id="connect">Connect</button>
-        <button id="disconnect" disabled>Disconnect</button>
-        <span id="state" class="status disconnected">disconnected</span>
+<!-- =================== CONNECT =================== -->
+<section class="screen active" data-screen="connect">
+    <div class="card">
+        <h2>Connection</h2>
+        <div class="kicker">
+            Connects one virtual OpenLCB node to a GridConnect WebSocket server
+            (JMRI, an OpenLCB hub, etc.).  Open the browser console to see the
+            full protocol trace.
+        </div>
+        <div class="row"><label for="url">WebSocket URL</label><input id="url" type="text" value="ws://localhost:12080/lcc/hub/"></div>
+        <div class="row"><label for="nodeId">Node ID (hex)</label><input id="nodeId" type="text" value=""></div>
+        <div class="row"><label for="consumerCount">Consumer count</label><input id="consumerCount" type="number" min="0" max="255" value="0"></div>
+        <div class="row"><label for="producerCount">Producer count</label><input id="producerCount" type="number" min="0" max="255" value="0"></div>
+        <label class="ck-row">
+            <input id="streams" type="checkbox"> Advertise stream support
+        </label>
+        <div class="kicker">
+            When checked, the node advertises Stream Protocol support in its PIP and
+            Memory Configuration Options replies.  Peers that prefer streams (none yet
+            &mdash; JMRI still uses datagrams) may then choose streams over datagrams
+            for memory reads/writes.
+        </div>
+        <div class="bar-actions">
+            <button class="btn primary grow" id="connect">Connect</button>
+            <button class="btn ghost" id="disconnect" disabled>Disconnect</button>
+        </div>
     </div>
 </section>
 
-<section>
-    <div class="row">
-        <label for="event">Event ID (hex, 16 chars)</label>
-        <input id="event" type="text" value="0101000000000201">
-    </div>
-    <div class="row">
-        <button id="sendPcer" disabled>Send PC Event Report</button>
-    </div>
+<!-- =================== MAIN ====================== -->
+<section class="screen" data-screen="main">
+    <details class="card-details" open>
+        <summary><h2>Send PC Event Report</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                Publish any event ID on the bus.  Other nodes that consume this event
+                will see it land via their <code>onPcEventReport</code> hook.
+            </div>
+            <div class="row"><label for="event">Event ID (hex)</label><input id="event" type="text" value="0101000000000201"></div>
+            <div class="bar-actions">
+                <button class="btn primary grow" id="sendPcer" disabled>Send</button>
+            </div>
+        </div>
+    </details>
+
+    <details class="card-details" open>
+        <summary><h2>Query a peer</h2></summary>
+        <div class="content">
+            <div class="kicker">
+                On connect, every node on the bus is asked to identify itself and we
+                automatically request its SNIP.  Pick one from the dropdown to fill
+                its Node&nbsp;ID + alias, or type them in directly.  All replies are
+                also appended to the Log below.
+            </div>
+            <div class="row">
+                <label for="peerSelect">Discovered <span id="peerCount" style="color:var(--fg-dim);font-weight:normal">(0)</span></label>
+                <select id="peerSelect" disabled>
+                    <option value="">— none —</option>
+                </select>
+                <button class="btn compact" id="refreshPeers" disabled>Refresh</button>
+            </div>
+            <div class="row"><label for="peerNodeId">Peer Node ID (hex)</label><input id="peerNodeId" type="text" placeholder="020112FE4F12"></div>
+            <div class="row"><label for="peerAlias">Peer alias (hex)</label><input id="peerAlias" type="text" placeholder="d91"></div>
+            <div class="btn-row">
+                <button class="btn" id="verifyPeer" disabled>Verify Node ID</button>
+                <button class="btn" id="snipPeer" disabled>Request SNIP</button>
+                <button class="btn" id="verifyGlobal" disabled>Verify (Global)</button>
+            </div>
+            <div id="peerDetails" class="peer-details">
+                <div class="empty">Select a peer above to see its accumulated details.</div>
+            </div>
+        </div>
+    </details>
 </section>
 
-<section>
-    <h2 style="font-size:1em;margin-top:0">Log</h2>
+</main>
+
+<details class="log" open>
+    <summary>Activity log</summary>
     <div id="log"></div>
-</section>
+</details>
 
 <!--
     ESM — imports the wrapper directly.  Serve this file from an HTTP server
@@ -75,6 +112,7 @@ import {
     OpenLcb, WebSocketTransport,
     TransportBusyError,
 } from '../../src/index.js';
+import { PSI } from '../../src/openlcb/constants.js';
 import { LocalStorageConfigMemory } from '../../src/storage/localstorage-config-memory.js';
 import {
     NODE_ID,
@@ -113,18 +151,179 @@ const log = (msg) => {
 let openlcb = null;
 let node = null;
 
+function show(screenName) {
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.toggle('active', s.dataset.screen === screenName);
+    });
+    $('screenTitle').textContent = screenName === 'main' ? 'Node' : 'Connect';
+}
+
 function setState(name) {
-    const el = $('state');
-    el.textContent = name;
-    el.className = `status ${name}`;
+    // Top-bar status pill mirrors the transport state.
+    const pill = $('state');
+    pill.textContent = name;
+    pill.className = `pill ${name}`;
+
+    // Show the connect screen until the node is logged in; show the main
+    // (interaction) screen afterwards.  Keep the connect screen visible
+    // while connecting so the user sees the form they just submitted.
+    show(name === 'connected' ? 'main' : 'connect');
+
+    // Top-bar Disconnect is only useful when a node is up.
+    const topDc = $('btnTopDisconnect');
+    topDc.hidden = name !== 'connected';
+
     const locked = name === 'connected' || name === 'connecting';
     $('connect').disabled = locked;
     $('disconnect').disabled = name !== 'connected';
     $('sendPcer').disabled = name !== 'connected' || !node;
+    const peerLocked = name !== 'connected' || !node;
+    $('verifyPeer').disabled   = peerLocked;
+    $('snipPeer').disabled     = peerLocked;
+    $('verifyGlobal').disabled = peerLocked;
+    $('refreshPeers').disabled = peerLocked;
+    $('peerSelect').disabled   = peerLocked || peers.size === 0;
     $('url').disabled = locked;
     $('nodeId').disabled = locked;
     $('consumerCount').disabled = locked;
     $('producerCount').disabled = locked;
+    $('streams').disabled = locked;
+}
+
+// Top-bar Disconnect just delegates to the in-card Disconnect button.
+$('btnTopDisconnect').addEventListener('click', () => $('disconnect').click());
+
+// Discovered-peers state.  Keyed by 12-bit alias (unique on the bus).
+// Each entry: { alias:Number, nodeId:BigInt, lastVerifiedAt:Date|null, snip:object|null }
+const peers = new Map();
+let selectedAlias = null;
+
+function fmtAliasLocal(a) { return '0x' + a.toString(16).padStart(3, '0'); }
+function fmtNodeIdLocal(n) { return n.toString(16).padStart(12, '0'); }
+function fmtTime(d) {
+    if (!d) return '—';
+    return d.toISOString().slice(11, 23);
+}
+
+function renderPeerSelect() {
+    const sel = $('peerSelect');
+    const prev = selectedAlias;
+    sel.innerHTML = '';
+    const optNone = document.createElement('option');
+    optNone.value = '';
+    optNone.textContent = peers.size === 0 ? '— none —' : '— select a peer —';
+    sel.appendChild(optNone);
+    // Stable sort by alias for predictable UI ordering.
+    const sorted = [...peers.values()].sort((a, b) => a.alias - b.alias);
+    for (const p of sorted) {
+        const opt = document.createElement('option');
+        opt.value = String(p.alias);
+        // Label resolution:
+        //   - SNIP known + non-empty userName  → use userName  (operator-set)
+        //   - SNIP known otherwise             → "Manufacturer · Model"
+        //   - SNIP not yet requested           → "peer 0xNNN"   (alias only)
+        // The full alias + Node ID still show up in the inputs and the
+        // details panel as soon as the option is selected.
+        let label;
+        if (p.snip) {
+            const userName = (p.snip.userName ?? '').trim();
+            label = userName !== ''
+                ? userName
+                : [p.snip.manufacturerName, p.snip.model].filter(Boolean).join(' · ')
+                  || `peer ${fmtAliasLocal(p.alias)}`;
+        } else {
+            label = `peer ${fmtAliasLocal(p.alias)}`;
+        }
+        opt.textContent = label;
+        sel.appendChild(opt);
+    }
+    // Restore prior selection if still present, else clear.
+    if (prev != null && peers.has(prev)) {
+        sel.value = String(prev);
+    } else {
+        sel.value = '';
+        selectedAlias = null;
+    }
+    $('peerCount').textContent = `(${peers.size})`;
+    $('peerSelect').disabled = !node || peers.size === 0;
+}
+
+function renderPeerDetails() {
+    const el = $('peerDetails');
+    if (selectedAlias == null) {
+        el.innerHTML = peers.size === 0
+            ? '<div class="empty">No peers discovered yet — click Refresh or Verify (Global).</div>'
+            : '<div class="empty">Select a peer above to see its accumulated details.</div>';
+        return;
+    }
+    const p = peers.get(selectedAlias);
+    if (!p) { el.innerHTML = '<div class="empty">No data for this peer.</div>'; return; }
+    const snip = p.snip;
+    const row = (k, v) => `<dt>${k}</dt><dd>${v ?? '—'}</dd>`;
+    const dash = (s) => (s == null || s === '') ? '—' : s;
+    el.innerHTML = '<dl>' +
+        row('Alias',          fmtAliasLocal(p.alias)) +
+        row('Node ID',        fmtNodeIdLocal(p.nodeId)) +
+        row('Last verified',  fmtTime(p.lastVerifiedAt)) +
+        (snip
+            ? row('Manufacturer', dash(snip.manufacturerName)) +
+              row('Model',        dash(snip.model)) +
+              row('Hardware',     dash(snip.hardwareVersion)) +
+              row('Software',     dash(snip.softwareVersion)) +
+              row('User name',    dash(snip.userName)) +
+              row('User descr',   dash(snip.userDescription)) +
+              row('Versions',     `mfg=${snip.manufacturerVersionId} user=${snip.userVersionId}`)
+            : '<dt>SNIP</dt><dd class="empty">not requested yet — click Request SNIP</dd>'
+        ) +
+        '</dl>';
+}
+
+// Mirror the currently selected peer's identity into the peerAlias /
+// peerNodeId text inputs.  Called both from the dropdown's change handler
+// and from upsertPeerVerify when it auto-selects the first peer (because
+// a programmatic .value assignment on the <select> does NOT fire a change
+// event, so the dropdown handler alone misses the auto-select case).
+function fillPeerInputsFromSelection() {
+    if (selectedAlias == null) return;
+    const peer = peers.get(selectedAlias);
+    if (!peer) return;
+    $('peerAlias').value  = selectedAlias.toString(16).padStart(3, '0');
+    $('peerNodeId').value = peer.nodeId.toString(16).padStart(12, '0');
+}
+
+function upsertPeerVerify(sourceId, sourceAlias) {
+    const existing = peers.get(sourceAlias);
+    const entry = existing ?? { alias: sourceAlias, nodeId: sourceId, lastVerifiedAt: null, snip: null };
+    entry.nodeId = sourceId;            // refresh in case bus reused alias
+    entry.lastVerifiedAt = new Date();
+    peers.set(sourceAlias, entry);
+    const justAutoSelected = !existing && selectedAlias == null;
+    if (justAutoSelected) selectedAlias = sourceAlias;
+    renderPeerSelect();
+    if (justAutoSelected) fillPeerInputsFromSelection();
+    if (selectedAlias === sourceAlias) renderPeerDetails();
+
+    // First time we hear from this peer: probe its SNIP automatically so the
+    // dropdown picks up a friendly "Manufacturer · Model" (or operator-set
+    // userName) label without requiring a click.  Already-known peers are
+    // skipped — re-verifies only refresh the timestamp.
+    if (!existing && node) {
+        try {
+            node.sendSimpleNodeInfoRequest(sourceAlias, sourceId);
+            log(`auto-SNIP → ${fmtAlias(sourceAlias)} ${fmtNodeId(sourceId)}`);
+        } catch (e) {
+            log(`auto-SNIP failed for ${fmtAlias(sourceAlias)}: ${e?.message ?? e}`);
+        }
+    }
+}
+
+function upsertPeerSnip(sourceAlias, fields) {
+    const existing = peers.get(sourceAlias);
+    if (!existing) return;              // SNIP arrived before we knew the alias; rare
+    existing.snip = fields;
+    peers.set(sourceAlias, existing);
+    renderPeerSelect();
+    if (selectedAlias === sourceAlias) renderPeerDetails();
 }
 
 $('connect').addEventListener('click', async () => {
@@ -145,21 +344,73 @@ $('connect').addEventListener('click', async () => {
             transport: new WebSocketTransport({ url }),
             callbacks: {
                 onTransportConnect:    () => { log('transport connected'); },
-                onTransportDisconnect: () => { setState('disconnected'); log('transport disconnected'); node = null; },
+                onTransportDisconnect: () => {
+                    setState('disconnected');
+                    log('transport disconnected');
+                    node = null;
+                    peers.clear();
+                    selectedAlias = null;
+                    renderPeerSelect();
+                    renderPeerDetails();
+                },
                 onTransportError:      (err) => log(`transport error: ${err?.message ?? err}`),
+
+                // Reply to a Verify Node ID we sent.  Fires once per remote
+                // replier — global verifies will produce one entry per node
+                // currently on the bus.  `receivingNode` is OUR node that
+                // issued the request; the (sourceId, sourceAlias) identify
+                // the responder.  We also use these to populate the peer
+                // dropdown / details panel.
+                onVerifiedNodeId: (receivingNode, sourceId, sourceAlias) => {
+                    log(`verified peer: alias=0x${sourceAlias.toString(16)} node=${sourceId.toString(16).padStart(12, '0')}`);
+                    upsertPeerVerify(sourceId, sourceAlias);
+                },
+
+                // Reply to a sendSimpleNodeInfoRequest we sent.  The runtime
+                // unpacks the NUL-terminated UTF-8 strings before invoking
+                // this hook, so `fields` is a plain JS object — safe to keep.
+                onSimpleNodeInfoReply: (sourceId, sourceAlias, fields) => {
+                    log(
+                        `SNIP reply from alias=0x${sourceAlias.toString(16)} node=${sourceId.toString(16).padStart(12, '0')}\n` +
+                        `  manufacturer:  ${fields.manufacturerName}\n` +
+                        `  model:         ${fields.model}\n` +
+                        `  hw / sw:       ${fields.hardwareVersion} / ${fields.softwareVersion}\n` +
+                        `  user name:     ${fields.userName}\n` +
+                        `  user descr:    ${fields.userDescription}\n` +
+                        `  versions:      mfg=${fields.manufacturerVersionId} user=${fields.userVersionId}`
+                    );
+                    upsertPeerSnip(sourceAlias, fields);
+                },
             },
         });
 
         // Spread the openlcb_user_config.js parameters; let the form
-        // override the consumer/producer auto-create counts.
-        node = openlcb.createNode(nodeId, {
+        // override the consumer/producer auto-create counts.  When the
+        // streams checkbox is checked, opt the node into Stream Protocol
+        // for memory configuration: set the PIP advertisement bit and the
+        // matching Memory Configuration Options "stream R/W" bit.  JMRI
+        // (and any other peer) sees both flags and uses streams instead
+        // of datagrams for large CDI / config-mem transfers.
+        const useStreams = $('streams').checked;
+        const params = {
             ...OpenLcbUserConfig_node_parameters,
             consumerCountAutocreate: consumerCount,
             producerCountAutocreate: producerCount,
-        }, {
+        };
+        if (useStreams) {
+            params.protocolSupport = [...params.protocolSupport, PSI.STREAM];
+            params.configurationOptions = {
+                ...params.configurationOptions,
+                streamReadWriteSupported: true,
+            };
+        }
+        node = openlcb.createNode(nodeId, params, {
             onLoginComplete: (n) => {
                 log(`node ${n.id.toString(16)} login complete`);
                 setState('connected'); // re-enable sendPcer
+                // Probe the bus once at login so the dropdown is populated.
+                try { n.sendVerifyNodeIdGlobal(); }
+                catch (e) { log(`auto-verify failed: ${e?.message ?? e}`); }
             },
             onConsumedEventIdentified: (n, idx, eventId, status) => {
                 log(`consumed event: ${eventId.toString(16)} status=${status}`);
@@ -228,6 +479,95 @@ $('sendPcer').addEventListener('click', () => {
         } else {
             log(`sendPcer error: ${e?.message ?? e}`);
         }
+    }
+});
+
+// Peer-query helpers.  Both inputs accept hex; either may be left blank.
+// At least one of (alias, Node ID) must be filled for the addressed buttons.
+function parsePeerAlias() {
+    const v = $('peerAlias').value.trim().replace(/^0x/i, '');
+    if (!v) return 0;
+    const n = parseInt(v, 16);
+    return Number.isFinite(n) ? (n & 0xFFF) : 0;
+}
+function parsePeerNodeId() {
+    const v = $('peerNodeId').value.trim().replace(/[.\s]/g, '');
+    if (!v) return 0n;
+    try { return BigInt('0x' + v); } catch { return 0n; }
+}
+function fmtAlias(a) { return '0x' + a.toString(16).padStart(3, '0'); }
+function fmtNodeId(n) { return n.toString(16).padStart(12, '0'); }
+
+$('verifyPeer').addEventListener('click', () => {
+    if (!openlcb || !node) return;
+    const alias = parsePeerAlias();
+    const nodeId = parsePeerNodeId();
+    if (alias === 0 && nodeId === 0n) {
+        log('verifyPeer: enter at least an alias or a Node ID');
+        return;
+    }
+    try {
+        node.sendVerifyNodeIdAddressed(alias, nodeId);
+        log(`Verify Node ID sent → alias=${fmtAlias(alias)} node=${fmtNodeId(nodeId)}`);
+    } catch (e) {
+        log(`verifyPeer error: ${e?.message ?? e}`);
+    }
+});
+
+$('verifyGlobal').addEventListener('click', () => {
+    if (!openlcb || !node) return;
+    try {
+        node.sendVerifyNodeIdGlobal();
+        log('Verify Node ID sent (global) — every node on the bus should reply');
+    } catch (e) {
+        log(`verifyGlobal error: ${e?.message ?? e}`);
+    }
+});
+
+$('snipPeer').addEventListener('click', () => {
+    if (!openlcb || !node) return;
+    const alias = parsePeerAlias();
+    const nodeId = parsePeerNodeId();
+    if (alias === 0 && nodeId === 0n) {
+        log('snipPeer: enter at least an alias or a Node ID');
+        return;
+    }
+    try {
+        node.sendSimpleNodeInfoRequest(alias, nodeId);
+        log(`SNIP request sent → alias=${fmtAlias(alias)} node=${fmtNodeId(nodeId)}`);
+    } catch (e) {
+        log(`snipPeer error: ${e?.message ?? e}`);
+    }
+});
+
+// Picking a peer auto-fills the alias + Node ID inputs so the existing
+// addressed buttons (Verify / Request SNIP) target it without retyping.
+$('peerSelect').addEventListener('change', (e) => {
+    const aliasStr = e.target.value;
+    if (!aliasStr) {
+        selectedAlias = null;
+        renderPeerDetails();
+        return;
+    }
+    const alias = Number(aliasStr);
+    const peer = peers.get(alias);
+    if (!peer) return;
+    selectedAlias = alias;
+    fillPeerInputsFromSelection();
+    renderPeerDetails();
+});
+
+// Manual Refresh — re-issue the global verify.  Existing peers stay in the
+// Map; replies update their lastVerifiedAt timestamp.  (We don't clear the
+// Map on refresh — peers that no longer reply just keep their stale entry,
+// which is usually what the user wants for ad-hoc inspection.)
+$('refreshPeers').addEventListener('click', () => {
+    if (!openlcb || !node) return;
+    try {
+        node.sendVerifyNodeIdGlobal();
+        log('Refresh: Verify Node ID sent (global)');
+    } catch (e) {
+        log(`refreshPeers error: ${e?.message ?? e}`);
     }
 });
 </script>
