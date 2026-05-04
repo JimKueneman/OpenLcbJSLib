@@ -278,10 +278,20 @@ $('btnConnect').addEventListener('click', async () => {
         // library has the producer/consumer ranges in the node's lists when
         // login fires its automatic Range Identified emissions per spec
         // Section 6.1.  setupProducer also allocates the per-clock state
-        // slot inside the broadcast-time protocol handler.
+        // slot inside the broadcast-time protocol handler.  Seed each slot
+        // with the boot defaults so the producer's C state matches the UI
+        // form from the moment login completes — without seeding, a query
+        // before the user touches a Broadcast button would return 00:00 /
+        // 0/0 / year 0 / rate 0 instead of what the form shows.  Running
+        // stays false until the user clicks Run.
         for (const c of state.activeClocks) {
             try {
                 state.node.broadcastTime.setupProducer(c.clockId);
+                const s = state.live[c.key];
+                state.node.broadcastTime.setLocalTime(c.clockId, s.hour, s.minute);
+                state.node.broadcastTime.setLocalDate(c.clockId, s.month, s.day);
+                state.node.broadcastTime.setLocalYear(c.clockId, s.year);
+                state.node.broadcastTime.setLocalRate(c.clockId, s.rateRaw);
                 log(`will generate "${c.label}"`);
             } catch (e) {
                 log(`could not register "${c.label}": ${e?.message ?? e}`);
@@ -347,29 +357,24 @@ refreshConnectGate();
 // -----------------------------------------------------------------------------
 // Local clock advance (start/stop the library's internal time tracker)
 // -----------------------------------------------------------------------------
-// Run / Pause flip the library's internal running state, announce it on
-// the wire, and schedule the §6.5 catch-up burst.  We also mirror the new
-// state into our own UI directly — the user click is authoritative for
-// this node's display, since the C library does not echo producer-side
-// API calls back through any callback.
+// Run / Pause: setLocalStart/Stop flips the library's running state and
+// fires onBroadcastClockStarted/Stopped, which already updates state.live
+// and re-renders.  sendStart/Stop puts the change on the wire; the §6.5
+// catch-up burst follows.
 $('btnLocalStart').addEventListener('click', () => {
     if (!state.node) return;
     const cid = currentClockId();
-    state.node.broadcastTime.start(cid);
+    state.node.broadcastTime.setLocalStart(cid);
     try { state.node.broadcastTime.sendStart(cid); } catch (e) { log(`broadcast "started" failed: ${e?.message ?? e}`); }
     scheduleSyncBurst(cid);
-    state.live[state.focusedKey].running = true;
-    renderReadout();
     log(`running "${labelFor(state.focusedKey)}"`);
 });
 $('btnLocalStop').addEventListener('click', () => {
     if (!state.node) return;
     const cid = currentClockId();
-    state.node.broadcastTime.stop(cid);
+    state.node.broadcastTime.setLocalStop(cid);
     try { state.node.broadcastTime.sendStop(cid); } catch (e) { log(`broadcast "stopped" failed: ${e?.message ?? e}`); }
     scheduleSyncBurst(cid);
-    state.live[state.focusedKey].running = false;
-    renderReadout();
     log(`paused "${labelFor(state.focusedKey)}"`);
 });
 
@@ -412,42 +417,37 @@ function scheduleSyncBurst(cid) {
     catch (e) { log(`schedule snapshot failed: ${e?.message ?? e}`); }
 }
 
-// Each Broadcast handler: emit on the wire, schedule §6.5 catch-up burst,
-// and mirror the staged value into the focused clock's live slot so our
-// own UI reflects what we just sent.  Date Rollover carries no value, so
-// it has nothing to mirror.
+// Each Broadcast handler: setLocal* updates the producer's own state and
+// fires the matching onBroadcast*Received callback (which keeps state.live
+// in sync and re-renders), then sendReport* puts it on the wire and the
+// §6.5 catch-up burst is scheduled.  Date Rollover carries no value, so
+// nothing local to mutate.
 $('btnReportTime').addEventListener('click',   () => withClock('broadcast time',  (c) => {
     const s = readStaged();
+    bt().setLocalTime(c, s.h, s.m);
     bt().sendReportTime(c, s.h, s.m);
     scheduleSyncBurst(c);
-    state.live[state.focusedKey].hour = s.h;
-    state.live[state.focusedKey].minute = s.m;
-    renderReadout();
     log(`broadcast time ${pad2(s.h)}:${pad2(s.m)}`);
 }));
 $('btnReportDate').addEventListener('click',   () => withClock('broadcast date',  (c) => {
     const s = readStaged();
+    bt().setLocalDate(c, s.mo, s.d);
     bt().sendReportDate(c, s.mo, s.d);
     scheduleSyncBurst(c);
-    state.live[state.focusedKey].month = s.mo;
-    state.live[state.focusedKey].day   = s.d;
-    renderReadout();
     log(`broadcast date ${s.mo}/${s.d}`);
 }));
 $('btnReportYear').addEventListener('click',   () => withClock('broadcast year',  (c) => {
     const s = readStaged();
+    bt().setLocalYear(c, s.y);
     bt().sendReportYear(c, s.y);
     scheduleSyncBurst(c);
-    state.live[state.focusedKey].year = s.y;
-    renderReadout();
     log(`broadcast year ${s.y}`);
 }));
 $('btnReportRate').addEventListener('click',   () => withClock('broadcast speed', (c) => {
     const s = readStaged();
+    bt().setLocalRate(c, s.rate);
     bt().sendReportRate(c, s.rate);
     scheduleSyncBurst(c);
-    state.live[state.focusedKey].rateRaw = s.rate;
-    renderReadout();
     log(`broadcast speed ${rateToFloat(s.rate).toFixed(2)}x`);
 }));
 $('btnDateRollover').addEventListener('click', () => withClock('broadcast midnight', (c) => { bt().sendDateRollover(c); log('broadcast "midnight crossed"'); }));
@@ -589,6 +589,43 @@ function refreshIdentityStatus() {
 // Utilities
 // -----------------------------------------------------------------------------
 function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, Number.isFinite(n) ? n : lo)); }
+
+// -----------------------------------------------------------------------------
+// Background keep-alive — silent Web Audio loop
+// -----------------------------------------------------------------------------
+// Browsers throttle setInterval in hidden tabs to ~1Hz, which slows the JS-side
+// 100ms tick driver and makes the fast clock crawl when the tab loses focus.
+// Tabs that are actively producing audio are exempt from that clamp, so we
+// play a one-second silent loop through the Web Audio API.  The toggle's
+// click event is the user gesture that lets the AudioContext start.
+let _keepAliveCtx = null;
+let _keepAliveSrc = null;
+
+function startKeepAlive() {
+    if (_keepAliveCtx) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { log('keep-alive: Web Audio not available in this browser'); return; }
+    _keepAliveCtx = new Ctx();
+    const buf = _keepAliveCtx.createBuffer(1, _keepAliveCtx.sampleRate, _keepAliveCtx.sampleRate);
+    const src = _keepAliveCtx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(_keepAliveCtx.destination);
+    src.start();
+    _keepAliveSrc = src;
+    log('keep-alive: silent audio loop running');
+}
+
+function stopKeepAlive() {
+    if (_keepAliveSrc) { try { _keepAliveSrc.stop(); } catch (_) {} _keepAliveSrc = null; }
+    if (_keepAliveCtx) { _keepAliveCtx.close(); _keepAliveCtx = null; }
+    log('keep-alive: silent audio loop stopped');
+}
+
+$('ckKeepAlive').addEventListener('change', (e) => {
+    if (e.target.checked) startKeepAlive();
+    else stopKeepAlive();
+});
 
 // -----------------------------------------------------------------------------
 // Init

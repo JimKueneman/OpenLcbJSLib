@@ -90,6 +90,16 @@
             <span><b id="readYear">—</b></span>
             <span>Speed: <b id="readRate">—</b></span>
         </div>
+        <div class="kicker">
+            Browsers slow background tabs down to about one timer tick per second,
+            which makes the clock crawl when you switch away. Turn this on to play
+            a silent audio loop in the background — most browsers leave audio-playing
+            tabs at full speed, so the clock keeps ticking normally.
+            <label style="display:block; margin-top:6px;">
+                <input type="checkbox" id="ckKeepAlive">
+                Keep clock running when this tab is hidden
+            </label>
+        </div>
     </div>
 
     <!-- ------ Run / Pause (no panel) ------ -->
@@ -137,6 +147,13 @@
                 <button class="btn" id="btnReportYear">Broadcast year</button>
                 <button class="btn" id="btnReportRate">Broadcast speed</button>
                 <button class="btn" id="btnDateRollover">Broadcast "midnight crossed"</button>
+            </div>
+
+            <div class="kicker">
+                While the clock is running, a time announcement goes out automatically once
+                per real minute — no matter how fast the speed multiplier is. So at 60× you'll
+                see one announcement on the wire each real minute, not 60. If you want listeners
+                to catch up immediately, use "Send full snapshot" below.
             </div>
 
             <div class="bar-actions">

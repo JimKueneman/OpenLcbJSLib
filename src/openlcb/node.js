@@ -290,6 +290,16 @@ class BroadcastTimeFacade {
     sendSetRate(clockId, rate)            { _throwIfError(this._api.btSetRate(this._node.id, BigInt(clockId), rate | 0),                'broadcastTime.sendSetRate'); }
     sendCommandStart(clockId)             { _throwIfError(this._api.btCommandStart(this._node.id, BigInt(clockId)),                     'broadcastTime.sendCommandStart'); }
     sendCommandStop(clockId)              { _throwIfError(this._api.btCommandStop(this._node.id, BigInt(clockId)),                      'broadcastTime.sendCommandStop'); }
+
+    // Local-origin state setters: mutate this clock's state and fire the
+    // matching on*Received callback without putting any frame on the wire.
+    // Pair with sendReport*/sendStart/sendStop when you also want to broadcast.
+    setLocalTime(clockId, hour, minute)   { _throwIfError(this._api.btSetLocalTime(this._node.id, BigInt(clockId), hour | 0, minute | 0), 'broadcastTime.setLocalTime'); }
+    setLocalDate(clockId, month, day)     { _throwIfError(this._api.btSetLocalDate(this._node.id, BigInt(clockId), month | 0, day | 0),   'broadcastTime.setLocalDate'); }
+    setLocalYear(clockId, year)           { _throwIfError(this._api.btSetLocalYear(this._node.id, BigInt(clockId), year | 0),             'broadcastTime.setLocalYear'); }
+    setLocalRate(clockId, rate)           { _throwIfError(this._api.btSetLocalRate(this._node.id, BigInt(clockId), rate | 0),             'broadcastTime.setLocalRate'); }
+    setLocalStart(clockId)                { _throwIfError(this._api.btSetLocalStart(this._node.id, BigInt(clockId)),                      'broadcastTime.setLocalStart'); }
+    setLocalStop(clockId)                 { _throwIfError(this._api.btSetLocalStop(this._node.id, BigInt(clockId)),                       'broadcastTime.setLocalStop'); }
 }
 
 // ---------------------------------------------------------------------------

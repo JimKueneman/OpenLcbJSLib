@@ -274,6 +274,12 @@ export function createApi(Module) {
         btSetRate:          c('wasm_bt_send_set_rate',         'number', ['bigint','bigint','number']),
         btCommandStart:     c('wasm_bt_send_command_start',    'number', ['bigint','bigint']),
         btCommandStop:      c('wasm_bt_send_command_stop',     'number', ['bigint','bigint']),
+        btSetLocalTime:     c('wasm_bt_set_local_time',        'number', ['bigint','bigint','number','number']),
+        btSetLocalDate:     c('wasm_bt_set_local_date',        'number', ['bigint','bigint','number','number']),
+        btSetLocalYear:     c('wasm_bt_set_local_year',        'number', ['bigint','bigint','number']),
+        btSetLocalRate:     c('wasm_bt_set_local_rate',        'number', ['bigint','bigint','number']),
+        btSetLocalStart:    c('wasm_bt_set_local_start',       'number', ['bigint','bigint']),
+        btSetLocalStop:     c('wasm_bt_set_local_stop',        'number', ['bigint','bigint']),
 
         // Broadcast-time codecs (pure)
         btMakeClockId:        c('wasm_bt_make_clock_id',         'bigint', ['bigint']),

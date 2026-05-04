@@ -874,7 +874,7 @@ var OpenLCB = (() => {
         Module.onStreamComplete($0);
       }
     } };
-    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_send_simple_node_info_request, _wasm_snip_extract_manufacturer_version_id, _wasm_snip_extract_user_version_id, _wasm_snip_extract_name, _wasm_snip_extract_model, _wasm_snip_extract_hardware_version, _wasm_snip_extract_software_version, _wasm_snip_extract_user_name, _wasm_snip_extract_user_description, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_set_heartbeat_timeout, _wasm_train_get_heartbeat_timeout, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_train_get_reserved_by_node_id, _wasm_train_get_listener_count, _wasm_train_get_listener_at, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+    var _wasm_initialize, _wasm_run, _wasm_100ms_tick, _wasm_rx_gridconnect, _wasm_node_builder_reset, _free, _wasm_node_set_snip, _wasm_node_set_protocol_support, _wasm_node_set_event_autocreate, _wasm_node_set_configuration_options, _wasm_node_set_address_space, _wasm_node_set_cdi, _malloc, _wasm_node_set_fdi, _wasm_create_node, _wasm_send_event_pc_report, _wasm_send_event_with_mti, _wasm_send_teach_event, _wasm_send_initialization_event, _wasm_send_verify_node_id_addressed, _wasm_send_verify_node_id_global, _wasm_send_simple_node_info_request, _wasm_snip_extract_manufacturer_version_id, _wasm_snip_extract_user_version_id, _wasm_snip_extract_name, _wasm_snip_extract_model, _wasm_snip_extract_hardware_version, _wasm_snip_extract_software_version, _wasm_snip_extract_user_name, _wasm_snip_extract_user_description, _wasm_register_consumer_eventid, _wasm_register_producer_eventid, _wasm_clear_consumer_eventids, _wasm_clear_producer_eventids, _wasm_register_consumer_range, _wasm_register_producer_range, _wasm_clear_consumer_ranges, _wasm_clear_producer_ranges, _wasm_bt_is_consumer, _wasm_bt_is_producer, _wasm_bt_start, _wasm_bt_stop, _wasm_bt_send_report_time, _wasm_bt_send_report_date, _wasm_bt_send_report_year, _wasm_bt_send_report_rate, _wasm_bt_send_start, _wasm_bt_send_stop, _wasm_bt_send_date_rollover, _wasm_bt_send_query, _wasm_bt_send_query_reply, _wasm_bt_send_set_time, _wasm_bt_send_set_date, _wasm_bt_send_set_year, _wasm_bt_send_set_rate, _wasm_bt_send_command_start, _wasm_bt_send_command_stop, _wasm_bt_set_local_time, _wasm_bt_set_local_date, _wasm_bt_set_local_year, _wasm_bt_set_local_rate, _wasm_bt_set_local_start, _wasm_bt_set_local_stop, _wasm_bt_setup_consumer, _wasm_bt_setup_producer, _wasm_bt_trigger_query_reply, _wasm_bt_trigger_sync_delay, _wasm_bt_make_clock_id, _wasm_bt_is_time_event, _wasm_bt_extract_clock_id, _wasm_bt_get_event_type, _wasm_bt_extract_time, _wasm_bt_extract_date, _wasm_bt_extract_year, _wasm_bt_extract_rate, _wasm_bt_create_time_event_id, _wasm_bt_create_date_event_id, _wasm_bt_create_year_event_id, _wasm_bt_create_rate_event_id, _wasm_bt_create_command_event_id, _wasm_train_send_emergency_stop, _wasm_train_send_query_speeds, _wasm_train_send_assign_controller, _wasm_train_send_release_controller, _wasm_train_send_noop, _wasm_train_send_set_speed, _wasm_train_send_set_function, _wasm_train_send_query_function, _wasm_train_setup, _wasm_train_set_dcc_address, _wasm_train_get_dcc_address, _wasm_train_is_long_address, _wasm_train_set_speed_steps, _wasm_train_get_speed_steps, _wasm_train_set_heartbeat_timeout, _wasm_train_get_heartbeat_timeout, _wasm_train_send_query_controller, _wasm_train_send_reserve, _wasm_train_send_release_reserve, _wasm_train_send_controller_changing_notify, _wasm_train_send_listener_detach, _wasm_train_send_listener_attach, _wasm_train_send_listener_query, _wasm_train_get_reserved_by_node_id, _wasm_train_get_listener_count, _wasm_train_get_listener_at, _wasm_dcc_encode_event_id, _wasm_dcc_make_short_address, _wasm_dcc_make_consist_address, _wasm_dcc_extract_direction, _wasm_dcc_extract_address_type, _wasm_dcc_extract_raw_address, _wasm_dcc_extract_dcc_address, _wasm_dcc_extract_detector_id, _wasm_dcc_is_track_empty, _wasm_util_generate_event_range_id, _wasm_util_alias_for_node_id, _wasm_util_is_producer_event_assigned, _wasm_util_is_consumer_event_assigned, _wasm_util_is_event_in_producer_ranges, _wasm_util_is_event_in_consumer_ranges, _wasm_float16_from_float, _wasm_float16_to_float, _wasm_float16_negate, _wasm_float16_is_nan, _wasm_float16_is_zero, _wasm_float16_speed_with_direction, _wasm_float16_get_speed, _wasm_float16_get_direction, _wasm_train_search_is_search_event, _wasm_train_search_extract_flags, _wasm_train_search_extract_digits, _wasm_train_search_digits_to_address, _wasm_train_search_create_event_id, _wasm_train_send_search_match, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
     function assignWasmExports(wasmExports2) {
       _wasm_initialize = Module["_wasm_initialize"] = wasmExports2["wasm_initialize"];
       _wasm_run = Module["_wasm_run"] = wasmExports2["wasm_run"];
@@ -933,6 +933,12 @@ var OpenLCB = (() => {
       _wasm_bt_send_set_rate = Module["_wasm_bt_send_set_rate"] = wasmExports2["wasm_bt_send_set_rate"];
       _wasm_bt_send_command_start = Module["_wasm_bt_send_command_start"] = wasmExports2["wasm_bt_send_command_start"];
       _wasm_bt_send_command_stop = Module["_wasm_bt_send_command_stop"] = wasmExports2["wasm_bt_send_command_stop"];
+      _wasm_bt_set_local_time = Module["_wasm_bt_set_local_time"] = wasmExports2["wasm_bt_set_local_time"];
+      _wasm_bt_set_local_date = Module["_wasm_bt_set_local_date"] = wasmExports2["wasm_bt_set_local_date"];
+      _wasm_bt_set_local_year = Module["_wasm_bt_set_local_year"] = wasmExports2["wasm_bt_set_local_year"];
+      _wasm_bt_set_local_rate = Module["_wasm_bt_set_local_rate"] = wasmExports2["wasm_bt_set_local_rate"];
+      _wasm_bt_set_local_start = Module["_wasm_bt_set_local_start"] = wasmExports2["wasm_bt_set_local_start"];
+      _wasm_bt_set_local_stop = Module["_wasm_bt_set_local_stop"] = wasmExports2["wasm_bt_set_local_stop"];
       _wasm_bt_setup_consumer = Module["_wasm_bt_setup_consumer"] = wasmExports2["wasm_bt_setup_consumer"];
       _wasm_bt_setup_producer = Module["_wasm_bt_setup_producer"] = wasmExports2["wasm_bt_setup_producer"];
       _wasm_bt_trigger_query_reply = Module["_wasm_bt_trigger_query_reply"] = wasmExports2["wasm_bt_trigger_query_reply"];
@@ -2052,6 +2058,27 @@ var OpenLCB = (() => {
     sendCommandStop(clockId) {
       _throwIfError(this._api.btCommandStop(this._node.id, BigInt(clockId)), "broadcastTime.sendCommandStop");
     }
+    // Local-origin state setters: mutate this clock's state and fire the
+    // matching on*Received callback without putting any frame on the wire.
+    // Pair with sendReport*/sendStart/sendStop when you also want to broadcast.
+    setLocalTime(clockId, hour, minute) {
+      _throwIfError(this._api.btSetLocalTime(this._node.id, BigInt(clockId), hour | 0, minute | 0), "broadcastTime.setLocalTime");
+    }
+    setLocalDate(clockId, month, day) {
+      _throwIfError(this._api.btSetLocalDate(this._node.id, BigInt(clockId), month | 0, day | 0), "broadcastTime.setLocalDate");
+    }
+    setLocalYear(clockId, year) {
+      _throwIfError(this._api.btSetLocalYear(this._node.id, BigInt(clockId), year | 0), "broadcastTime.setLocalYear");
+    }
+    setLocalRate(clockId, rate) {
+      _throwIfError(this._api.btSetLocalRate(this._node.id, BigInt(clockId), rate | 0), "broadcastTime.setLocalRate");
+    }
+    setLocalStart(clockId) {
+      _throwIfError(this._api.btSetLocalStart(this._node.id, BigInt(clockId)), "broadcastTime.setLocalStart");
+    }
+    setLocalStop(clockId) {
+      _throwIfError(this._api.btSetLocalStop(this._node.id, BigInt(clockId)), "broadcastTime.setLocalStop");
+    }
   };
   function _throwIfError(rc, ctx) {
     const err = errorForReturnCode(rc, ctx);
@@ -2435,6 +2462,12 @@ var OpenLCB = (() => {
       btSetRate: c("wasm_bt_send_set_rate", "number", ["bigint", "bigint", "number"]),
       btCommandStart: c("wasm_bt_send_command_start", "number", ["bigint", "bigint"]),
       btCommandStop: c("wasm_bt_send_command_stop", "number", ["bigint", "bigint"]),
+      btSetLocalTime: c("wasm_bt_set_local_time", "number", ["bigint", "bigint", "number", "number"]),
+      btSetLocalDate: c("wasm_bt_set_local_date", "number", ["bigint", "bigint", "number", "number"]),
+      btSetLocalYear: c("wasm_bt_set_local_year", "number", ["bigint", "bigint", "number"]),
+      btSetLocalRate: c("wasm_bt_set_local_rate", "number", ["bigint", "bigint", "number"]),
+      btSetLocalStart: c("wasm_bt_set_local_start", "number", ["bigint", "bigint"]),
+      btSetLocalStop: c("wasm_bt_set_local_stop", "number", ["bigint", "bigint"]),
       // Broadcast-time codecs (pure)
       btMakeClockId: c("wasm_bt_make_clock_id", "bigint", ["bigint"]),
       btIsTimeEvent: c("wasm_bt_is_time_event", "number", ["bigint"]),
